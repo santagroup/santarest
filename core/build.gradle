@@ -1,0 +1,24 @@
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:2.2.+'
+    }
+}
+
+
+apply plugin: 'java'
+apply plugin: 'provided-base'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+dependencies {
+    compile 'com.google.code.gson:gson:+'
+    provided 'com.google.android:android:+'
+    provided 'com.squareup.okhttp:okhttp:+'
+    provided 'com.squareup.okhttp:okhttp-urlconnection:+'
+}
