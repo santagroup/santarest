@@ -1,6 +1,8 @@
 package com.saltar;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 
 import com.google.gson.Gson;
@@ -27,6 +29,22 @@ class Defaults {
 
     private enum Platform {
         ANDROID, BASE
+    }
+
+    private static class SynchronousExecutor implements Executor {
+        @Override
+        public void execute(Runnable runnable) {
+            runnable.run();
+        }
+    }
+
+    private static final class MainThreadExecutor implements Executor {
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void execute(Runnable r) {
+            handler.post(r);
+        }
     }
 
     private static Platform platform;
@@ -87,6 +105,13 @@ class Defaults {
                 }, IDLE_THREAD_NAME);
             }
         });
+    }
+
+    public static Executor defaultCallbackExecutor() {
+        if (isPlatform(Platform.ANDROID)) {
+            return new MainThreadExecutor();
+        }
+        return new SynchronousExecutor();
     }
 
     private static boolean hasOkHttpOnClasspath() {

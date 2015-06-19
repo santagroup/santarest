@@ -15,6 +15,7 @@ public class Saltar {
     private String serverUrl;
     private HttpClient client;
     private Executor executor;
+    private Executor callbackExecutor;
     private RequestInterceptor requestInterceptor;
     private Converter converter;
 
@@ -25,12 +26,13 @@ public class Saltar {
         this.serverUrl = builder.serverUrl;
         this.client = builder.client;
         this.executor = builder.executor;
+        this.callbackExecutor = builder.callbackExecutor;
         this.requestInterceptor = builder.requestInterceptor;
         this.converter = builder.converter;
-        loadRequestCreatorProvider();
+        loadActionHelperFactory();
     }
 
-    private void loadRequestCreatorProvider() {
+    private void loadActionHelperFactory() {
         try {
             Class<? extends ActionHelperFactory> clazz
                     = (Class<? extends ActionHelperFactory>) Class.forName("com.saltar.ActionHelperFactoryImpl");
@@ -41,18 +43,31 @@ public class Saltar {
     }
 
     public <A> A executeAction(A action) {
-        Class actionClass = action.getClass();
-        ActionHelper<A> helper = actionHelperCache.get(actionClass);
-        if (helper == null) {
-            synchronized (this) {
-                helper = actionHelperFactory.make(action.getClass());
-                actionHelperCache.put(actionClass, helper);
-            }
-        }
+        ActionHelper<A> helper = getActionHelper(action.getClass());
         Request request = helper.createRequest(action, new RequestBuilder(serverUrl, converter));
         Response response = invokeRequest(request);
         action = helper.fillResponse(action, response, converter);
         return action;
+    }
+
+    public <A> void executeAction(final A action, Callback<A> callback) {
+        executor.execute(new CallbackRunnable<A>(action, callback, callbackExecutor) {
+            @Override
+            protected void executeAction(A action) {
+                executeAction(action);
+            }
+        });
+    }
+
+    private ActionHelper getActionHelper(Class actionClass) {
+        ActionHelper helper = actionHelperCache.get(actionClass);
+        if (helper == null) {
+            synchronized (this) {
+                helper = actionHelperFactory.make(actionClass);
+                actionHelperCache.put(actionClass, helper);
+            }
+        }
+        return helper;
     }
 
     private Response invokeRequest(Request request) {
@@ -95,11 +110,46 @@ public class Saltar {
         };
     }
 
+    private static abstract class CallbackRunnable<A> implements Runnable {
+        private final Callback<A> callback;
+        private final Executor callbackExecutor;
+        private final A action;
+
+        private CallbackRunnable(A action, Callback<A> callback, Executor callbackExecutor) {
+            this.action = action;
+            this.callback = callback;
+            this.callbackExecutor = callbackExecutor;
+        }
+
+        @Override
+        public final void run() {
+            try {
+                executeAction(action);
+                callbackExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(action);
+                    }
+                });
+            } catch (final Exception e) {
+                callbackExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onFail(e);
+                    }
+                });
+            }
+        }
+
+        protected abstract void executeAction(A action);
+    }
+
 
     public static class Builder {
         private String serverUrl;
         private HttpClient client;
         private Executor executor;
+        private Executor callbackExecutor;
         private RequestInterceptor requestInterceptor;
         private Converter converter;
 
@@ -135,6 +185,14 @@ public class Saltar {
                 throw new NullPointerException("HTTP executor may not be null.");
             }
             this.executor = httpExecutor;
+            return this;
+        }
+
+        public Builder setCallbackExecutor(Executor callbackExecutor) {
+            if (callbackExecutor == null) {
+                throw new NullPointerException("HTTP executor may not be null.");
+            }
+            this.callbackExecutor = callbackExecutor;
             return this;
         }
 
@@ -184,9 +242,9 @@ public class Saltar {
             if (converter == null) {
                 converter = Defaults.getConverter();
             }
-//            if (callbackExecutor == null) {
-//                callbackExecutor = Platform.make().defaultCallbackExecutor();
-//            }
+            if (callbackExecutor == null) {
+                callbackExecutor = Defaults.defaultCallbackExecutor();
+            }
             if (requestInterceptor == null) {
                 requestInterceptor = RequestInterceptor.NONE;
             }
