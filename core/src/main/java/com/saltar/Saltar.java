@@ -64,7 +64,7 @@ public class Saltar {
         }
     }
 
-    static interface ActionHelper<T> {
+    public static interface ActionHelper<T> {
         Request createRequest(T action, RequestBuilder requestBuilder);
 
         T fillResponse(T action, Response response, Converter converter);

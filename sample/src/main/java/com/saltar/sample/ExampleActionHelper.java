@@ -1,6 +1,8 @@
-package com.saltar;
+package com.saltar.sample;
 
 import com.google.gson.reflect.TypeToken;
+import com.saltar.RequestBuilder;
+import com.saltar.Saltar;
 import com.saltar.annotations.SaltarAction;
 import com.saltar.converter.Converter;
 import com.saltar.http.Header;

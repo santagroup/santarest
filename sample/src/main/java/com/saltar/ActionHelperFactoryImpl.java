@@ -1,9 +1,12 @@
 package com.saltar;
 
+import com.saltar.sample.ExampleAction;
+import com.saltar.sample.ExampleActionHelper;
+
 /**
  * Created by dirong on 6/18/15.
  */
-public class ActionHelperFactoryImpl implements Saltar.ActionHelperFactory {
+class ActionHelperFactoryImpl implements Saltar.ActionHelperFactory {
 
     @Override
     public Saltar.ActionHelper make(Class actionClass) {

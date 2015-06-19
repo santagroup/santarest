@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-final class RequestBuilder {
+public final class RequestBuilder {
     private final Converter converter;
     private final String apiUrl;
 
@@ -54,7 +54,7 @@ final class RequestBuilder {
         this.formBody = null;
     }
 
-    void setRequestType(SaltarAction.Type type) {
+    public void setRequestType(SaltarAction.Type type) {
         switch (type) {
             case FORM_URL_ENCODED:
                 formBody = new FormUrlEncodedRequestBody();
@@ -75,7 +75,7 @@ final class RequestBuilder {
         }
     }
 
-    void addHeader(String name, String value) {
+    public void addHeader(String name, String value) {
         if (name == null) {
             throw new IllegalArgumentException("Header name must not be null.");
         }
@@ -91,19 +91,19 @@ final class RequestBuilder {
         headers.add(new Header(name, value));
     }
 
-    void setPath(String path) {
+    public void setPath(String path) {
         this.path = path;
     }
 
-    void addPathParam(String name, String value) {
+    public void addPathParam(String name, String value) {
         addPathParam(name, value, true);
     }
 
-    void addEncodedPathParam(String name, String value) {
+    public void addEncodedPathParam(String name, String value) {
         addPathParam(name, value, false);
     }
 
-    void addPathParam(String name, String value, boolean urlEncodeValue) {
+    public void addPathParam(String name, String value, boolean urlEncodeValue) {
         if (name == null) {
             throw new IllegalArgumentException("Path replacement name must not be null.");
         }
@@ -128,11 +128,11 @@ final class RequestBuilder {
         }
     }
 
-    void addQueryParam(String name, String value) {
+    public void addQueryParam(String name, String value) {
         addQueryParam(name, value, false, true);
     }
 
-    void addEncodedQueryParam(String name, String value) {
+    public void addEncodedQueryParam(String name, String value) {
         addQueryParam(name, value, false, false);
     }
 
@@ -198,7 +198,7 @@ final class RequestBuilder {
         }
     }
 
-    void addField(String name, Object value) {
+    public void addField(String name, Object value) {
         if (value != null) { // Skip null values.
             if (value instanceof Iterable) {
                 for (Object iterableValue : (Iterable<?>) value) {
@@ -219,11 +219,11 @@ final class RequestBuilder {
         }
     }
 
-    void addPart(String name, RequestBody value, String transferEncoding) {
+    public void addPart(String name, RequestBody value, String transferEncoding) {
         multipartBody.addPart(transferEncoding, value);
     }
 
-    void setBody(Object value) {
+    public void setBody(Object value) {
         if (multipartBody != null || formBody != null) {
             throw new IllegalArgumentException("Request is not simple type");
         }
@@ -237,11 +237,11 @@ final class RequestBuilder {
         }
     }
 
-    void setMethod(SaltarAction.Method method) {
+    public void setMethod(SaltarAction.Method method) {
         this.requestMethod = method;
     }
 
-    Request build() {
+    public Request build() {
         if (multipartBody != null && multipartBody.getPartCount() == 0) {
             throw new IllegalStateException("Multipart requests must contain at least one part.");
         }

@@ -1,4 +1,4 @@
-package com.saltar;
+package com.saltar.sample;
 
 import com.saltar.annotations.Path;
 import com.saltar.annotations.Response;

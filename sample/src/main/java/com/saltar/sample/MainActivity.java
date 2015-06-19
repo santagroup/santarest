@@ -5,11 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.saltar.ExampleAction;
 import com.saltar.Saltar;
-import com.saltar.sample.R;
-
-import java.util.List;
 
 public class MainActivity extends ActionBarActivity {
 
