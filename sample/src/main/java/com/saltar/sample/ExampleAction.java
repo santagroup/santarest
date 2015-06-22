@@ -4,6 +4,7 @@ import com.saltar.annotations.Path;
 import com.saltar.annotations.Response;
 import com.saltar.annotations.ResponseHeaders;
 import com.saltar.annotations.SaltarAction;
+import com.saltar.annotations.SaltarAction.Type;
 import com.saltar.annotations.Status;
 import com.saltar.http.Header;
 import com.saltar.http.ResponseBody;
@@ -14,43 +15,44 @@ import java.util.Map;
 /**
  * Created by dirong on 6/18/15.
  */
-@SaltarAction(path = "/repos/{owner}/{repo}/contributors")
+@SaltarAction(path = "/repos/{owner}/{repo}/contributors", type = Type.SIMPLE, headers = {}, value = SaltarAction.Method.PATCH)
 public class ExampleAction {
 
     @Path("owner")
-    String owner;
+    String ownerr;
     @Path("repo")
-    String repo;
+    String repoo;
     @Response
-    List<Contributor> contributors;
+    ResponseBody responseBodys;
     @Response
-    ResponseBody responseBody;
+    List<Contributor> contributorss;
     @ResponseHeaders
-    Map<String, String> headersMap;
+    Map<String, String> headersMaps;
     @ResponseHeaders
-    List<Header> headers;
+    List<Header> headerss;
+
     @Status
-    int status;
+    int statuss;
 
     public ExampleAction(String owner, String repo) {
-        this.owner = owner;
-        this.repo = repo;
+        this.ownerr = owner;
+        this.repoo = repo;
     }
 
     public List<Contributor> getContributors() {
-        return contributors;
+        return contributorss;
     }
 
     public ResponseBody getResponseBody() {
-        return responseBody;
+        return responseBodys;
     }
 
     public Map<String, String> getHeadersMap() {
-        return headersMap;
+        return headersMaps;
     }
 
     public List<Header> getHeaders() {
-        return headers;
+        return headerss;
     }
 
     public static class Contributor {
