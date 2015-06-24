@@ -1,4 +1,3 @@
-
 buildscript {
     repositories {
         jcenter()
@@ -18,6 +17,8 @@ targetCompatibility = 1.6
 
 dependencies {
     compile 'com.google.code.gson:gson:+'
+    provided 'de.greenrobot:eventbus:2.4.0'
+    provided 'com.squareup:otto:+'
     provided 'com.google.android:android:+'
     provided 'com.squareup.okhttp:okhttp:+'
     provided 'com.squareup.okhttp:okhttp-urlconnection:+'

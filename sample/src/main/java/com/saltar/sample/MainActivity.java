@@ -1,30 +1,42 @@
 package com.saltar.sample;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.saltar.Saltar;
+import com.squareup.otto.Subscribe;
 
 public class MainActivity extends ActionBarActivity {
+
+    private Saltar saltar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final Saltar saltar = new Saltar.Builder()
+        saltar = new Saltar.Builder()
                 .setServerUrl("https://api.github.com")
                 .build();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ExampleAction action = new ExampleAction("square", "retrofit");
-                saltar.executeAction(action);
-                System.out.println(action);
-            }
-        }).start();
+    }
 
+    @Subscribe
+    public void onExampleAction(ExampleAction action) {
+        System.out.println(action);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        saltar.subscribe(this);
+        saltar.sendAction(new ExampleAction("square", "retrofit"));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saltar.unsubscribe(this);
     }
 
     @Override

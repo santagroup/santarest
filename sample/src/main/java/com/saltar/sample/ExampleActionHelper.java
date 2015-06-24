@@ -31,14 +31,23 @@ public class ExampleActionHelper implements Saltar.ActionHelper<ExampleAction> {
     @Override
     public ExampleAction fillResponse(ExampleAction action, Response response, Converter converter){
         action.status = response.getStatus();
+        action.success = response.getStatus() >= 200 && response.getStatus() < 300;
         Type type = new TypeToken<List<ExampleAction.Contributor>>(){}.getType();
         action.contributors = (List<ExampleAction.Contributor>) converter.fromBody(response.getBody(), type);
         action.responseBody = response.getBody();
         action.headersMap = new HashMap<String, String>();
         for (Header header : response.getHeaders()) {
             action.headersMap.put(header.getName(), header.getValue());
+            if("X-GitHub-Request-Id".equals(header.getName())){
+                action.requestId = header.getValue();
+            }
         }
         action.headers = response.getHeaders();
+        return action;
+    }
+
+    @Override
+    public ExampleAction fillError(ExampleAction action, Throwable error) {
         return action;
     }
 

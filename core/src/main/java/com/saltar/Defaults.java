@@ -6,6 +6,9 @@ import android.os.Looper;
 import android.os.Process;
 
 import com.google.gson.Gson;
+import com.saltar.callback.ActionPoster;
+import com.saltar.callback.EventBusPoster;
+import com.saltar.callback.OttoPoster;
 import com.saltar.client.AndroidApacheClient;
 import com.saltar.client.HttpClient;
 import com.saltar.client.OkClient;
@@ -26,6 +29,7 @@ class Defaults {
 
     static final String THREAD_PREFIX = "Saltar-";
     static final String IDLE_THREAD_NAME = THREAD_PREFIX + "Idle";
+
 
     private enum Platform {
         ANDROID, BASE
@@ -107,39 +111,41 @@ class Defaults {
         });
     }
 
-    public static Executor defaultCallbackExecutor() {
+    public static Executor getDefaultCallbackExecutor() {
         if (isPlatform(Platform.ANDROID)) {
             return new MainThreadExecutor();
         }
         return new SynchronousExecutor();
     }
 
+    public static ActionPoster getDefualtActionPoster() {
+        if (isPlatform(Platform.ANDROID)) {
+            if (hasClass("de.greenrobot.event.EventBus")) {
+                return new EventBusPoster();
+            }
+            if (hasClass("com.squareup.otto.Bus")) {
+                return new OttoPoster();
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasClass(String className) {
+        boolean has = false;
+        try {
+            Class.forName(className);
+            has = true;
+        } catch (ClassNotFoundException e) {
+        }
+        return has;
+    }
+
     private static boolean hasOkHttpOnClasspath() {
-        boolean okUrlFactory = false;
-        try {
-            Class.forName("com.squareup.okhttp.OkUrlFactory");
-            okUrlFactory = true;
-        } catch (ClassNotFoundException e) {
+        if (hasClass("com.squareup.okhttp.OkUrlFactory")
+                || hasClass("com.squareup.okhttp.OkHttpClient")) {
+            return true;
         }
-
-        boolean okHttpClient = false;
-        try {
-            Class.forName("com.squareup.okhttp.OkHttpClient");
-            okHttpClient = true;
-        } catch (ClassNotFoundException e) {
-        }
-
-        if (!okHttpClient || !okUrlFactory) {
-//            throw new RuntimeException(""
-//                    + "Retrofit detected an unsupported OkHttp on the classpath.\n"
-//                    + "To use OkHttp with this version of Retrofit, you'll need:\n"
-//                    + "1. com.squareup.okhttp:okhttp:1.6.0 (or newer)\n"
-//                    + "2. com.squareup.okhttp:okhttp-urlconnection:1.6.0 (or newer)\n"
-//                    + "Note that OkHttp 2.0.0+ is supported!");
-            return false;
-        }
-
-        return okHttpClient;
+        return false;
     }
 
 

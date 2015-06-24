@@ -2,6 +2,7 @@ package com.saltar.sample;
 
 import com.saltar.annotations.Path;
 import com.saltar.annotations.Response;
+import com.saltar.annotations.ResponseHeader;
 import com.saltar.annotations.ResponseHeaders;
 import com.saltar.annotations.SaltarAction;
 import com.saltar.annotations.Status;
@@ -31,6 +32,10 @@ public class ExampleAction {
     List<Header> headers;
     @Status
     int status;
+    @Status
+    boolean success;
+    @ResponseHeader("X-GitHub-Request-Id")
+    String requestId;
 
     public ExampleAction(String owner, String repo) {
         this.owner = owner;
@@ -53,8 +58,29 @@ public class ExampleAction {
         return headers;
     }
 
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
     public static class Contributor {
         String login;
         int contributions;
+    }
+
+    @Override
+    public String toString() {
+        return "ExampleAction{" +
+                "owner='" + owner + '\'' +
+                ", repo='" + repo + '\'' +
+                ", contributors=" + contributors +
+                ", responseBody=" + responseBody +
+                ", headersMap=" + headersMap +
+                ", headers=" + headers +
+                ", status=" + status +
+                '}';
     }
 }
