@@ -1,23 +1,25 @@
 package com.saltar;
 
+import com.saltar.callback.ActionPoster;
+import com.saltar.callback.Callback;
 import com.saltar.client.HttpClient;
 import com.saltar.converter.Converter;
 import com.saltar.http.Request;
 import com.saltar.http.Response;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
 public class Saltar {
 
-    private String serverUrl;
-    private HttpClient client;
-    private Executor executor;
-    private Executor callbackExecutor;
-    private RequestInterceptor requestInterceptor;
-    private Converter converter;
+    private final String serverUrl;
+    private final HttpClient client;
+    private final Executor executor;
+    private final Executor callbackExecutor;
+    private final RequestInterceptor requestInterceptor;
+    private final Converter converter;
+    private final ActionPoster actionPoster;
 
     private final Map<Class, ActionHelper> actionHelperCache = new HashMap<Class, ActionHelper>();
     private ActionHelperFactory actionHelperFactory;
@@ -29,6 +31,7 @@ public class Saltar {
         this.callbackExecutor = builder.callbackExecutor;
         this.requestInterceptor = builder.requestInterceptor;
         this.converter = builder.converter;
+        this.actionPoster = builder.actionPoster;
         loadActionHelperFactory();
     }
 
@@ -44,19 +47,43 @@ public class Saltar {
 
     public <A> A executeAction(A action) {
         ActionHelper<A> helper = getActionHelper(action.getClass());
+        if (helper == null) {
+            throw new IllegalArgumentException("Action object should be annotated by @SaltarAction");
+        }
         Request request = helper.createRequest(action, new RequestBuilder(serverUrl, converter));
-        Response response = invokeRequest(request);
-        action = helper.fillResponse(action, response, converter);
+        try {
+            Response response = client.execute(request);
+            action = helper.fillResponse(action, response, converter);
+        } catch (Exception error) {
+            action = helper.fillError(action, error);
+        }
         return action;
     }
 
-    public <A> void executeAction(final A action, Callback<A> callback) {
-        executor.execute(new CallbackRunnable<A>(action, callback, callbackExecutor) {
+    public <A> void sendAction(final A action, Callback<A> callback) {
+        CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, callback);
+        executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
             @Override
-            protected void executeAction(A action) {
+            protected void doExecuteAction(A action) {
                 executeAction(action);
             }
         });
+    }
+
+    public <A> void sendAction(A action) {
+        sendAction(action, null);
+    }
+
+    public void subscribe(Object subscriber) {
+        if (actionPoster != null) {
+            actionPoster.subscribe(subscriber);
+        }
+    }
+
+    public void unsubscribe(Object subscriber) {
+        if (actionPoster != null) {
+            actionPoster.unsubscribe(subscriber);
+        }
     }
 
     private ActionHelper getActionHelper(Class actionClass) {
@@ -70,19 +97,12 @@ public class Saltar {
         return helper;
     }
 
-    private Response invokeRequest(Request request) {
-        try {
-            Response response = client.execute(request);
-            return response;
-        } catch (IOException e) {
-            throw new RuntimeException("invoke request exception");//TODO: add sаltar exception
-        }
-    }
-
     public static interface ActionHelper<T> {
         Request createRequest(T action, RequestBuilder requestBuilder);
 
         T fillResponse(T action, Response response, Converter converter);
+
+        T fillError(T action, Throwable error);
     }
 
     static interface ActionHelperFactory {
@@ -110,6 +130,37 @@ public class Saltar {
         };
     }
 
+    private static class CallbackWrapper<A> implements Callback<A> {
+
+        private final ActionPoster actionPoster;
+        private final Callback<A> callback;
+
+        private CallbackWrapper(ActionPoster actionPoster, Callback<A> callback) {
+            this.actionPoster = actionPoster;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onSuccess(A a) {
+            if (callback != null) {
+                callback.onSuccess(a);
+            }
+            if (actionPoster != null) {
+                actionPoster.post(a);
+            }
+        }
+
+        @Override
+        public void onFail(A action, Exception error) {
+            if (callback != null) {
+                callback.onFail(action, error);
+            }
+            if (actionPoster != null) {
+                actionPoster.post(action);
+            }
+        }
+    }
+
     private static abstract class CallbackRunnable<A> implements Runnable {
         private final Callback<A> callback;
         private final Executor callbackExecutor;
@@ -124,7 +175,7 @@ public class Saltar {
         @Override
         public final void run() {
             try {
-                executeAction(action);
+                doExecuteAction(action);
                 callbackExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -135,13 +186,13 @@ public class Saltar {
                 callbackExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onFail(e);
+                        callback.onFail(action, e);
                     }
                 });
             }
         }
 
-        protected abstract void executeAction(A action);
+        protected abstract void doExecuteAction(A action);
     }
 
 
@@ -152,6 +203,7 @@ public class Saltar {
         private Executor callbackExecutor;
         private RequestInterceptor requestInterceptor;
         private Converter converter;
+        private ActionPoster actionPoster;
 
         /**
          * API URL.
@@ -218,12 +270,20 @@ public class Saltar {
             return this;
         }
 
+        public Builder setActionPoster(ActionPoster actionPoster) {
+            if (actionPoster == null) {
+                throw new NullPointerException("ActionPoster may not be null.");
+            }
+            this.actionPoster = actionPoster;
+            return this;
+        }
+
         /**
          * Create the {@link Saltar} instance.
          */
         public Saltar build() {
             if (serverUrl == null) {
-                throw new IllegalArgumentException("Endpoint may not be null.");
+                throw new IllegalArgumentException("Server url may not be null.");
             }
             fillDefaults();
             return new Saltar(this);
@@ -243,10 +303,13 @@ public class Saltar {
                 converter = Defaults.getConverter();
             }
             if (callbackExecutor == null) {
-                callbackExecutor = Defaults.defaultCallbackExecutor();
+                callbackExecutor = Defaults.getDefaultCallbackExecutor();
             }
             if (requestInterceptor == null) {
                 requestInterceptor = RequestInterceptor.NONE;
+            }
+            if (actionPoster == null) {
+                actionPoster = Defaults.getDefualtActionPoster();
             }
         }
     }
