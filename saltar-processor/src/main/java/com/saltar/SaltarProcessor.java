@@ -54,16 +54,12 @@ public class SaltarProcessor extends AbstractProcessor {
         for (Element saltarElement : roundEnv.getElementsAnnotatedWith(SaltarAction.class)) {
             try {
                 new ClassValidator(saltarElement).validate();
-                System.out.println("ClassValidator");
                 TypeElement typeElement = (TypeElement) saltarElement;
                 SaltarActionClass actionClass = new SaltarActionClass(elementUtils, typeElement);
-
-                new AnnotationsValidator(actionClass).validate();
-                System.out.println("AnnotationsValidator");
+                new AnnotationsValidator(messager, actionClass).validate();
                 actionClasses.add(actionClass);
 
                 new HelperGenerator(actionClass, filer, elementUtils).generate();
-                System.out.println("HelperGenerator");
             } catch (IllegalAccessException e) {
                 error(saltarElement, e.getMessage());
                 return true;
@@ -73,7 +69,6 @@ public class SaltarProcessor extends AbstractProcessor {
         if (!actionClasses.isEmpty()) {
             try {
                 new FactoryGenerator(actionClasses, filer, elementUtils).generate();
-                System.out.println("FactoryGenerator");
             } catch (IllegalAccessException e) {
                 messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
                 return true;

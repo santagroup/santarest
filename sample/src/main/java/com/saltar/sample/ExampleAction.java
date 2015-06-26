@@ -1,6 +1,7 @@
 package com.saltar.sample;
 
 import com.saltar.annotations.Path;
+import com.saltar.annotations.RequestHeaders;
 import com.saltar.annotations.Response;
 import com.saltar.annotations.ResponseHeader;
 import com.saltar.annotations.ResponseHeaders;
@@ -29,9 +30,10 @@ public class ExampleAction {
     List<Contributor> contributorss;
     @ResponseHeaders
     Map<String, String> headersMaps;
-    @ResponseHeaders
-    List<Header> headerss;
-
+    @RequestHeaders
+    List<Header> requestHeaders;
+    @RequestHeaders
+    Map<String, String> requestHeaders2;
     @Status
     int status;
     @Status
@@ -57,7 +59,7 @@ public class ExampleAction {
     }
 
     public List<Header> getHeaders() {
-        return headerss;
+        return requestHeaders;
     }
 
     public String getRequestId() {
@@ -81,7 +83,7 @@ public class ExampleAction {
                 ", contributors=" + contributorss +
                 ", responseBody=" + responseBodys +
                 ", headersMap=" + headersMaps +
-                ", headers=" + headerss +
+                ", headers=" + requestHeaders +
                 ", status=" + status +
                 '}';
     }

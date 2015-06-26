@@ -8,6 +8,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
 public class ClassValidator implements Validator {
+
     private final Element saltarElement;
     private final TypeElement typeElement;
 
@@ -24,7 +25,6 @@ public class ClassValidator implements Validator {
             throw new IllegalAccessException(String.format("Only classes can be annotated with @%s", className));
         }
         String annotatedClassName = typeElement.getQualifiedName().toString();
-        System.out.println(typeElement.getModifiers());
         if (!typeElement.getModifiers().contains(Modifier.PUBLIC)) {
             throw new IllegalAccessException(String.format("The class %s is not public.", annotatedClassName));
         }

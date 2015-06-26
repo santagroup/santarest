@@ -12,6 +12,7 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -23,7 +24,7 @@ public class SaltarActionClass {
     private final SaltarAction.Type requestType;
     private final TypeElement typeElement;
     private final Elements elementUtils;
-    private final List<Element> allMembers;
+    private final List<Element> allAnnotatedMembers;
 
     public SaltarActionClass(Elements elementUtils, TypeElement typeElement) throws IllegalAccessException {
         SaltarAction annotation = typeElement.getAnnotation(SaltarAction.class);
@@ -34,10 +35,11 @@ public class SaltarActionClass {
         path = annotation.path();
         requestType = annotation.type();
 
-        allMembers = new ArrayList<Element>();
+
+        allAnnotatedMembers = new ArrayList<Element>();
         for (Element element : elementUtils.getAllMembers(typeElement)) {
-            if (element.getKind() == ElementKind.FIELD) {
-                allMembers.add(element);
+            if (element.getKind() == ElementKind.FIELD && annotatedWithLibraryAnnotation(element)) {
+                allAnnotatedMembers.add(element);
             }
         }
     }
@@ -77,7 +79,7 @@ public class SaltarActionClass {
 
     public List<Element> getAnnotatedElements(Class annotationClass) {
         ArrayList<Element> annotatedElements = new ArrayList<Element>();
-        for (Element element : elementUtils.getAllMembers(typeElement)) {
+        for (Element element : allAnnotatedMembers) {
             Annotation annotation = element.getAnnotation(annotationClass);
             if (annotation != null) {
                 annotatedElements.add(element);
@@ -86,13 +88,8 @@ public class SaltarActionClass {
         return annotatedElements;
     }
 
-    public String getFieldName(Class fieldAnnotation) {
-        return getFieldNameExcluded(fieldAnnotation);
-    }
-
-
     public TypeMirror getFieldType(Class fieldAnnotation, Class... excluded) {
-        for (Element element : allMembers) {
+        for (Element element : allAnnotatedMembers) {
             Annotation annotation = element.getAnnotation(fieldAnnotation);
             if (annotation == null || isExcluded(element, excluded)) continue;
             return element.asType();
@@ -101,7 +98,7 @@ public class SaltarActionClass {
     }
 
     public String getFieldNameExcluded(Class fieldAnnotation, Class... excluded) {
-        for (Element element : allMembers) {
+        for (Element element : allAnnotatedMembers) {
             Annotation annotation = element.getAnnotation(fieldAnnotation);
             if (annotation == null || isExcluded(element, excluded)) continue;
             return element.getSimpleName().toString();
@@ -122,7 +119,7 @@ public class SaltarActionClass {
     }
 
     public String getFieldName(Class fieldClass, Class fieldAnnotation) {
-        for (Element element : allMembers) {
+        for (Element element : allAnnotatedMembers) {
             Annotation annotation = element.getAnnotation(fieldAnnotation);
             if (annotation == null) continue;
             if (element.asType().toString().equals(fieldClass.getName())) {
@@ -133,15 +130,35 @@ public class SaltarActionClass {
     }
 
     public String getFieldName(TypeToken typeToken, Class fieldAnnotation) {
-        for (Element element : allMembers) {
+        for (Element element : allAnnotatedMembers) {
             Annotation annotation = element.getAnnotation(fieldAnnotation);
             if (annotation == null) continue;
-            String typeClassName = element.asType().toString().replaceAll(" ", "");
-            String tokenClassName = typeToken.toString().replaceAll(" ", "");
-            if (typeClassName.equals(tokenClassName)) {
+            if (element.asType().toString().equals(typeToken.getType().getTypeName())) {
                 return element.getSimpleName().toString();
             }
         }
         return null;
     }
+
+    public List<Element> getAllAnnotatedMembers() {
+        return allAnnotatedMembers;
+    }
+
+    private boolean annotatedWithLibraryAnnotation(Element specifiedElement) {
+        String annotationPackage = SaltarAction.class.getPackage().getName();
+        PackageElement packageElement = elementUtils.getPackageElement(annotationPackage);
+        for (Element element : packageElement.getEnclosedElements()) {
+            if (element.getKind() != ElementKind.ANNOTATION_TYPE) continue;
+            try {
+                Class aClass = Class.forName(element.asType().toString());
+                if (specifiedElement.getAnnotation(aClass) != null) {
+                    return true;
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
 }
