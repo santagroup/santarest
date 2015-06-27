@@ -175,7 +175,7 @@ public class AnnotationsValidator implements Validator {
         for (Element element : baseElement.getEnclosedElements()) {
             if (element.getAnnotation(annotationClass) == null) continue;
             if (!typesList.contains(this.requestType)) {
-                printMessage("It's possible to use %s only with %s RequestType ", element, bodyName, requestType.name());
+                printMessage("It's possible to use %s only with %s request types ", element, bodyName, typesList.toString());
             }
         }
     }

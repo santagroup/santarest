@@ -2,7 +2,11 @@ package com.saltar;
 
 
 import com.google.gson.reflect.TypeToken;
+import com.saltar.annotations.Field;
+import com.saltar.annotations.FieldMap;
 import com.saltar.annotations.Path;
+import com.saltar.annotations.Query;
+import com.saltar.annotations.QueryMap;
 import com.saltar.annotations.RequestHeader;
 import com.saltar.annotations.RequestHeaders;
 import com.saltar.annotations.ResponseHeader;
@@ -26,7 +30,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -49,7 +52,7 @@ public class HelperGenerator implements Generator {
     public void generate() throws IllegalAccessException {
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(actionClass.getHelperName())
                 .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(Saltar.ActionHelper.class);//Imposiible to use generic in our case
+                .addSuperinterface(Saltar.ActionHelper.class);//Impossible to use generic in our case
 
         classBuilder.addMethod(createRequestMethod().build());
         classBuilder.addMethod(createFillResponseMethod().build());
@@ -85,20 +88,50 @@ public class HelperGenerator implements Generator {
 
         addPathVariables(builder);
         addRequestHeaders(builder);
+        addRequestFields(builder);
+        addRequestQueries(builder);
         return builder.addStatement("return requestBuilder.build()");
+    }
+
+    private void addRequestFields(MethodSpec.Builder builder) {
+        for (Element element : actionClass.getAnnotatedElements(Field.class)) {
+            Field annotation = element.getAnnotation(Field.class);
+            builder.addStatement("requestBuilder.addField($S, action.$L)", annotation.value(), element);
+        }
+
+        for (Element element : actionClass.getAnnotatedElements(FieldMap.class)) {
+            if (TypeUtils.isMapString(element)) {
+                builder.beginControlFlow("for ($T fieldName : action.$L.keySet())", String.class, element);
+                builder.addStatement("requestBuilder.addField(fieldName, action.$L.get(fieldName))", element);
+                builder.endControlFlow();
+            }
+        }
+    }
+
+    private void addRequestQueries(MethodSpec.Builder builder) {
+        for (Element element : actionClass.getAnnotatedElements(Query.class)) {
+            Query annotation = element.getAnnotation(Query.class);
+            builder.addStatement("requestBuilder.addQueryParam($S, action.$L)", annotation.value(), element);
+        }
+
+        for (Element element : actionClass.getAnnotatedElements(QueryMap.class)) {
+            if (TypeUtils.isMapString(element)) {
+                builder.beginControlFlow("for ($T queryName : action.$L.keySet())", String.class, element);
+                builder.addStatement("requestBuilder.addQueryParam(queryName, action.$L.get(queryName))", element);
+                builder.endControlFlow();
+            }
+        }
     }
 
     private void addRequestHeaders(MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(RequestHeader.class)) {
             RequestHeader annotation = element.getAnnotation(RequestHeader.class);
-            builder.addStatement("requestBuilder.addHeader($S, action.$L)", annotation.value(), element.toString());
+            builder.addStatement("requestBuilder.addHeader($S, action.$L)", annotation.value(), element);
         }
-        TypeToken mapType = new TypeToken<Map<String, String>>() {
-        };
         TypeToken listType = new TypeToken<List<Header>>() {
         };
         for (Element element : actionClass.getAnnotatedElements(RequestHeaders.class)) {
-            if (TypeUtils.equalTypes(element, mapType)) {
+            if (TypeUtils.isMapString(element)) {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T headerName : action.$L.keySet())", String.class, element);
                 builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName))", element);
@@ -179,12 +212,10 @@ public class HelperGenerator implements Generator {
             builder.addStatement("action.$L = $L.get($S)", element.toString(), BASE_HEADERS_MAP, annotation.value());
         }
 
-        TypeToken<Map<String, String>> mapType = new TypeToken<Map<String, String>>() {
-        };
         TypeToken<List<Header>> listType = new TypeToken<List<Header>>() {
         };
         for (Element element : actionClass.getAnnotatedElements(ResponseHeaders.class)) {
-            if (TypeUtils.equalTypes(element, mapType)) {
+            if (TypeUtils.isMapString(element)) {
                 builder.addStatement("action.$L = $L", element, BASE_HEADERS_MAP);
             } else if (TypeUtils.equalTypes(element, listType)) {
                 builder.addStatement("action.$L = response.getHeaders()", element);
