@@ -1,6 +1,5 @@
 package com.saltar;
 
-import com.google.gson.reflect.TypeToken;
 import com.saltar.annotations.SaltarAction;
 import com.saltar.annotations.SaltarAction.Method;
 
@@ -14,7 +13,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
 public class SaltarActionClass {
@@ -86,58 +84,6 @@ public class SaltarActionClass {
             }
         }
         return annotatedElements;
-    }
-
-    public TypeMirror getFieldType(Class fieldAnnotation, Class... excluded) {
-        for (Element element : allAnnotatedMembers) {
-            Annotation annotation = element.getAnnotation(fieldAnnotation);
-            if (annotation == null || isExcluded(element, excluded)) continue;
-            return element.asType();
-        }
-        return null;
-    }
-
-    public String getFieldNameExcluded(Class fieldAnnotation, Class... excluded) {
-        for (Element element : allAnnotatedMembers) {
-            Annotation annotation = element.getAnnotation(fieldAnnotation);
-            if (annotation == null || isExcluded(element, excluded)) continue;
-            return element.getSimpleName().toString();
-        }
-        return null;
-    }
-
-    private boolean isExcluded(Element element, Class[] excludeClasses) {
-        if (excludeClasses == null || excludeClasses.length == 0) {
-            return false;
-        }
-        for (Class clazz : excludeClasses) {
-            if (element.asType().toString().equals(clazz.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public String getFieldName(Class fieldClass, Class fieldAnnotation) {
-        for (Element element : allAnnotatedMembers) {
-            Annotation annotation = element.getAnnotation(fieldAnnotation);
-            if (annotation == null) continue;
-            if (element.asType().toString().equals(fieldClass.getName())) {
-                return element.getSimpleName().toString();
-            }
-        }
-        return null;
-    }
-
-    public String getFieldName(TypeToken typeToken, Class fieldAnnotation) {
-        for (Element element : allAnnotatedMembers) {
-            Annotation annotation = element.getAnnotation(fieldAnnotation);
-            if (annotation == null) continue;
-            if (element.asType().toString().equals(typeToken.getType().getTypeName())) {
-                return element.getSimpleName().toString();
-            }
-        }
-        return null;
     }
 
     public List<Element> getAllAnnotatedMembers() {

@@ -73,6 +73,7 @@ public class SaltarProcessor extends AbstractProcessor {
                 messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
                 return true;
             }
+            error(actionClasses.get(0).getTypeElement(), "ddd");
             actionClasses.clear();
         }
         return false;

@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,6 @@ import java.util.Map;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
 public class HelperGenerator implements Generator {
@@ -92,22 +90,21 @@ public class HelperGenerator implements Generator {
 
     private void addRequestHeaders(MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(RequestHeader.class)) {
-            ResponseHeader annotation = element.getAnnotation(ResponseHeader.class);
+            RequestHeader annotation = element.getAnnotation(RequestHeader.class);
             builder.addStatement("requestBuilder.addHeader($S, action.$L)", annotation.value(), element.toString());
         }
+        TypeToken mapType = new TypeToken<Map<String, String>>() {
+        };
+        TypeToken listType = new TypeToken<List<Header>>() {
+        };
         for (Element element : actionClass.getAnnotatedElements(RequestHeaders.class)) {
-            String mapTypeName = new TypeToken<Map<String, String>>() {}.getType().getTypeName();
-            if (TypeName.get(element.asType()).toString().equals(mapTypeName)) {
+            if (TypeUtils.equalTypes(element, mapType)) {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T headerName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName))",element);
+                builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName))", element);
                 builder.endControlFlow();
                 builder.endControlFlow();
-            }
-        }
-        for (Element element : actionClass.getAnnotatedElements(RequestHeaders.class)) {
-            String listTypeName = new TypeToken<List<Header>>() {}.getType().getTypeName();
-            if (TypeName.get(element.asType()).toString().equals(listTypeName)) {
+            } else if (TypeUtils.equalTypes(element, listType) || TypeUtils.equalTypes(element, Header[].class)) {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T header : action.$L)", Header.class, element);
                 builder.addStatement("requestBuilder.addHeader(header.getName(), header.getValue())");
@@ -142,86 +139,73 @@ public class HelperGenerator implements Generator {
         addConverter(builder);
         addBodyField(builder);
         addBasicHeadersMap(builder);
-        addHeadersMapField(builder);
-        addHeadersListField(builder);
-        addHeaderFields(builder);
+        addResponseHeaders(builder);
         builder.addStatement("return action");
         return builder;
     }
 
     private void addConverter(MethodSpec.Builder builder) {
-        String fieldName = actionClass.getFieldNameExcluded(com.saltar.annotations.Response.class, ResponseBody.class);
-        if (StringUtils.isEmpty(fieldName)) {
-            return;
-        }
-        TypeMirror type = actionClass.getFieldType(com.saltar.annotations.Response.class, ResponseBody.class);
-        builder.addStatement("$T type = new $T<$T>(){}.getType()", Type.class, TypeToken.class, type);
-        builder.addStatement("action.$L = ($T) converter.fromBody(response.getBody(), type)", fieldName, type);
-    }
+        for (Element element : actionClass.getAnnotatedElements(com.saltar.annotations.Response.class)) {
+            if (TypeUtils.equalTypes(element, ResponseBody.class)) continue;
 
-    private void addHeadersListField(MethodSpec.Builder builder) {
-        String headersArrayListField = actionClass.getFieldName(new TypeToken<ArrayList<Header>>() {
-        }, ResponseHeaders.class);
-        String headersListField = actionClass.getFieldName(new TypeToken<List<Header>>() {
-        }, ResponseHeaders.class);
-        if (StringUtils.isEmpty(headersArrayListField) && StringUtils.isEmpty(headersListField)) {
-            return;
-        }
-        if (!StringUtils.isEmpty(headersArrayListField)) {
-            builder.addStatement("action.$L = response.getHeaders()", headersArrayListField);
-        }
-        if (!StringUtils.isEmpty(headersListField)) {
-            builder.addStatement("action.$L = response.getHeaders()", headersListField);
+            builder.addStatement("$T type = new $T<$T>(){}.getType()", Type.class, TypeToken.class, element.asType());
+            builder.addStatement("action.$L = ($T) converter.fromBody(response.getBody(), type)", element, element.asType());
         }
     }
 
     private void addBodyField(MethodSpec.Builder builder) {
-        String bodyField = actionClass.getFieldName(ResponseBody.class, com.saltar.annotations.Response.class);
-        if (!StringUtils.isEmpty(bodyField)) {
-            builder.addStatement("action.$L = response.getBody()", bodyField);
+        for (Element element : actionClass.getAnnotatedElements(com.saltar.annotations.Response.class)) {
+            if (TypeUtils.equalTypes(element, ResponseBody.class)) {
+                builder.addStatement("action.$L = response.getBody()", element);
+            }
         }
     }
 
     private void addBasicHeadersMap(MethodSpec.Builder builder) {
+        boolean hasResponseHeader = !actionClass.getAnnotatedElements(ResponseHeader.class).isEmpty();
+        boolean hasResponseHeaders = !actionClass.getAnnotatedElements(ResponseHeaders.class).isEmpty();
+        if (!hasResponseHeader && !hasResponseHeaders) {
+            return;
+        }
         builder.addStatement("$T<$T, $T> $L = new $T<$T, $T>()", HashMap.class, String.class, String.class, BASE_HEADERS_MAP, HashMap.class, String.class, String.class);
         builder.beginControlFlow("for ($T header : response.getHeaders())", Header.class);
         builder.addStatement("$L.put(header.getName(), header.getValue())", BASE_HEADERS_MAP);
         builder.endControlFlow();
     }
 
-    private void addHeadersMapField(MethodSpec.Builder builder) {
-        String headersHashMapField = actionClass.getFieldName(new TypeToken<HashMap<String, String>>() {
-        }, ResponseHeaders.class);
-        String headersMapField = actionClass.getFieldName(new TypeToken<Map<String, String>>() {
-        }, ResponseHeaders.class);
-        if (StringUtils.isEmpty(headersHashMapField) && StringUtils.isEmpty(headersMapField)) {
-            return;
-        }
-        if (!StringUtils.isEmpty(headersHashMapField)) {
-            builder.addStatement("action.$L = $L", headersHashMapField, BASE_HEADERS_MAP);
-        }
-        if (!StringUtils.isEmpty(headersMapField)) {
-            builder.addStatement("action.$L = $L", headersMapField, BASE_HEADERS_MAP);
-        }
-
-    }
-
-    private void addHeaderFields(MethodSpec.Builder builder) {
+    private void addResponseHeaders(MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(ResponseHeader.class)) {
             ResponseHeader annotation = element.getAnnotation(ResponseHeader.class);
             builder.addStatement("action.$L = $L.get($S)", element.toString(), BASE_HEADERS_MAP, annotation.value());
         }
+
+        TypeToken<Map<String, String>> mapType = new TypeToken<Map<String, String>>() {
+        };
+        TypeToken<List<Header>> listType = new TypeToken<List<Header>>() {
+        };
+        for (Element element : actionClass.getAnnotatedElements(ResponseHeaders.class)) {
+            if (TypeUtils.equalTypes(element, mapType)) {
+                builder.addStatement("action.$L = $L", element, BASE_HEADERS_MAP);
+            } else if (TypeUtils.equalTypes(element, listType)) {
+                builder.addStatement("action.$L = response.getHeaders()", element);
+            } else if (TypeUtils.equalTypes(element, Header[].class)) {
+                builder.addStatement("action.$L = new $T[response.getHeaders().size()]", element, Header.class);
+                builder.addStatement("action.$L = response.getHeaders().toArray(action.$L)", element, element);
+            }
+        }
     }
 
     private void addStatusField(MethodSpec.Builder builder) {
-        String statusIntField = actionClass.getFieldName(int.class, Status.class);
-        if (!StringUtils.isEmpty(statusIntField)) {
-            builder.addStatement("action.$L = response.getStatus()", statusIntField);
-        }
-
-        String statusBooleanField = actionClass.getFieldName(boolean.class, Status.class);
-        if (!StringUtils.isEmpty(statusBooleanField)) {
-            builder.addStatement("action.$L = response.getStatus() >= 200 && response.getStatus() < 300", statusBooleanField);
+        for (Element element : actionClass.getAnnotatedElements(Status.class)) {
+            if (TypeUtils.containsType(element, Boolean.class, boolean.class)) {
+                builder.addStatement("action.$L = response.getStatus() >= 200 && response.getStatus() < 300", element);
+            } else if (TypeUtils.containsType(element, Integer.class, int.class, long.class)) {
+                builder.addStatement("action.$L = ($T) response.getStatus()", element, element.asType());
+            } else if (TypeUtils.equalTypes(element, String.class)) {
+                builder.addStatement("action.$L = Integer.toString(response.getStatus())", element);
+            } else if (TypeUtils.containsType(element, Long.class)) {
+                builder.addStatement("action.$L = (long) response.getStatus()", element);
+            }
         }
     }
 }

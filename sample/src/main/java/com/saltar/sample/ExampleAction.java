@@ -1,6 +1,7 @@
 package com.saltar.sample;
 
 import com.saltar.annotations.Path;
+import com.saltar.annotations.RequestHeader;
 import com.saltar.annotations.RequestHeaders;
 import com.saltar.annotations.Response;
 import com.saltar.annotations.ResponseHeader;
@@ -32,12 +33,12 @@ public class ExampleAction {
     Map<String, String> headersMaps;
     @RequestHeaders
     List<Header> requestHeaders;
-    @RequestHeaders
-    Map<String, String> requestHeaders2;
     @Status
-    int status;
+    long status;
     @Status
     boolean success;
+    @RequestHeader("X-GitHub-Request-Id")
+    String requestIdRequest;
     @ResponseHeader("X-GitHub-Request-Id")
     String requestId;
 

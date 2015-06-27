@@ -141,8 +141,8 @@ public class AnnotationsValidator implements Validator {
         validateType(FieldMap.class, mapWithStrings);
         validateType(RequestHeader.class, String.class);
         validateType(ResponseHeader.class, String.class);
-        validateType(ResponseHeaders.class, mapWithStrings, listWithHeader);
-        validateType(RequestHeaders.class, mapWithStrings, listWithHeader);
+        validateType(ResponseHeaders.class, mapWithStrings, listWithHeader, Header[].class);
+        validateType(RequestHeaders.class, mapWithStrings, listWithHeader, Header[].class);
         validateType(Status.class, Boolean.class, Integer.class, Long.class, String.class, boolean.class, int.class, long.class);
     }
 
@@ -152,7 +152,6 @@ public class AnnotationsValidator implements Validator {
         validateQuantity(FieldMap.class, 1);
         validateQuantity(Part.class, 1);
         validateQuantity(PartMap.class, 1);
-        validateQuantity(ResponseHeaders.class, 1);
     }
 
     private void validateRequestTypes() {
