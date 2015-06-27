@@ -49,7 +49,7 @@ public class HelperGenerator implements Generator {
     public void generate() throws IllegalAccessException {
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(actionClass.getHelperName())
                 .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(Saltar.ActionHelper.class);
+                .addSuperinterface(Saltar.ActionHelper.class);//Imposiible to use generic in our case
 
         classBuilder.addMethod(createRequestMethod().build());
         classBuilder.addMethod(createFillResponseMethod().build());

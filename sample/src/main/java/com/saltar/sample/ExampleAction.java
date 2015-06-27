@@ -15,9 +15,6 @@ import com.saltar.http.ResponseBody;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by dirong on 6/18/15.
- */
 @SaltarAction(path = "/repos/{owner}/{repo}/contributors", type = Type.SIMPLE, headers = {}, value = SaltarAction.Method.PATCH)
 public class ExampleAction {
 
