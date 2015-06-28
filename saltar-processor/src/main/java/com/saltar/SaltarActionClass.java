@@ -2,6 +2,7 @@ package com.saltar;
 
 import com.saltar.annotations.SaltarAction;
 import com.saltar.annotations.SaltarAction.Method;
+import com.squareup.javapoet.TypeName;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +25,7 @@ public class SaltarActionClass {
     private final List<Element> allAnnotatedMembers;
     private final HashMap<Class, List<Element>> allAnnotatedMembersMap;
 
-    public SaltarActionClass(Elements elementUtils, TypeElement typeElement) throws IllegalAccessException {
+    public SaltarActionClass(Elements elementUtils, TypeElement typeElement) {
         SaltarAction annotation = typeElement.getAnnotation(SaltarAction.class);
         this.typeElement = typeElement;
         this.elementUtils = elementUtils;
@@ -67,8 +68,12 @@ public class SaltarActionClass {
         return typeElement;
     }
 
+    public TypeName getTypeName(){
+        return TypeName.get(getTypeElement().asType());
+    }
+
     public String getHelperName() {
-        return getTypeElement().getSimpleName() + "Helper";
+        return getTypeElement().getSimpleName() + HelpersGenerator.HELPER_SUFFIX;
     }
 
     public String getName() {

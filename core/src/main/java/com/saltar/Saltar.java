@@ -13,6 +13,9 @@ import java.util.concurrent.Executor;
 
 public class Saltar {
 
+    final static String HELPERS_FACTORY_CLASS_SIMPLE_NAME = "ActionHelperFactoryImpl";
+    private final static String HELPERS_FACTORY_CLASS_NAME = Saltar.class.getPackage().getName() + "." + HELPERS_FACTORY_CLASS_SIMPLE_NAME;
+
     private final String serverUrl;
     private final HttpClient client;
     private final Executor executor;
@@ -38,10 +41,10 @@ public class Saltar {
     private void loadActionHelperFactory() {
         try {
             Class<? extends ActionHelperFactory> clazz
-                    = (Class<? extends ActionHelperFactory>) Class.forName("com.saltar.ActionHelperFactoryImpl");
+                    = (Class<? extends ActionHelperFactory>) Class.forName(HELPERS_FACTORY_CLASS_NAME);
             actionHelperFactory = clazz.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("It failed to create the Saltar");//TODO: add sаltar exception
+            throw new RuntimeException(e);
         }
     }
 

@@ -1,31 +1,23 @@
 package com.saltar;
 
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-public class FactoryGenerator implements Generator {
-    private final ArrayList<SaltarActionClass> actionClasses;
-    private final Filer filer;
-    private final Elements elementUtils;
+public class FactoryGenerator extends Generator {
 
-    public FactoryGenerator(ArrayList<SaltarActionClass> actionClasses, Filer filer, Elements elementUtils) {
-        this.actionClasses = actionClasses;
-        this.filer = filer;
-        this.elementUtils = elementUtils;
+    public FactoryGenerator(Filer filer) {
+        super(filer);
     }
 
     @Override
-    public void generate() throws IllegalAccessException {
-        TypeSpec.Builder classBuilder = TypeSpec.classBuilder("ActionHelperFactoryImpl")
+    public void generate(ArrayList<SaltarActionClass> actionClasses) {
+        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(Saltar.HELPERS_FACTORY_CLASS_SIMPLE_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addSuperinterface(ParameterizedTypeName.get(Saltar.ActionHelperFactory.class));
 
@@ -43,11 +35,6 @@ public class FactoryGenerator implements Generator {
         }
         makeMethodBuilder.addStatement("return null");
         classBuilder.addMethod(makeMethodBuilder.build());
-
-        try {
-            JavaFile.builder(Saltar.class.getPackage().getName(), classBuilder.build()).build().writeTo(filer);
-        } catch (IOException e) {
-            throw new IllegalAccessException(e.getMessage());
-        }
+        saveClass(Saltar.class.getPackage().getName(), classBuilder.build());
     }
 }

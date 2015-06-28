@@ -1,21 +1,17 @@
 package com.saltar.sample;
 
-import com.saltar.annotations.Path;
-import com.saltar.annotations.RequestHeader;
-import com.saltar.annotations.RequestHeaders;
-import com.saltar.annotations.Response;
-import com.saltar.annotations.ResponseHeader;
-import com.saltar.annotations.ResponseHeaders;
-import com.saltar.annotations.SaltarAction;
+import com.saltar.annotations.*;
+import com.saltar.annotations.Error;
 import com.saltar.annotations.SaltarAction.Type;
-import com.saltar.annotations.Status;
 import com.saltar.http.Header;
 import com.saltar.http.ResponseBody;
 
 import java.util.List;
 import java.util.Map;
 
-@SaltarAction(path = "/repos/{owner}/{repo}/contributors", type = Type.SIMPLE, headers = {}, value = SaltarAction.Method.PATCH)
+@SaltarAction(path = "/repos/{owner}/{repo}/contributors",
+              type = Type.SIMPLE,
+              value = SaltarAction.Method.GET)
 public class ExampleAction {
 
     @Path("owner")
@@ -34,10 +30,13 @@ public class ExampleAction {
     long status;
     @Status
     boolean success;
-    @RequestHeader("X-GitHub-Request-Id")
-    String requestIdRequest;
+//    @RequestHeader("X-GitHub-Request-Id")
+//    String requestIdRequest;
     @ResponseHeader("X-GitHub-Request-Id")
     String requestId;
+
+    @Error
+    Exception error;
 
     public ExampleAction(String owner, String repo) {
         this.ownerr = owner;

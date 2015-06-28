@@ -2,8 +2,12 @@ package com.saltar;
 
 import com.google.auto.service.AutoService;
 import com.saltar.annotations.SaltarAction;
+import com.saltar.validation.ClassValidator;
+import com.saltar.validation.SaltarActionValidators;
+import com.saltar.validation.ValidationError;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,24 +21,27 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
 public class SaltarProcessor extends AbstractProcessor {
-    private Types typeUtils;
     private Elements elementUtils;
-    private Filer filer;
     private Messager messager;
-    ArrayList<SaltarActionClass> actionClasses = new ArrayList<SaltarActionClass>();
+    private ClassValidator classValidator;
+    private SaltarActionValidators saltarActionValidators;
+    private FactoryGenerator factoryGenerator;
+    private HelpersGenerator helpersGenerator;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        typeUtils = processingEnv.getTypeUtils();
         elementUtils = processingEnv.getElementUtils();
-        filer = processingEnv.getFiler();
         messager = processingEnv.getMessager();
+        classValidator = new ClassValidator();
+        saltarActionValidators = new SaltarActionValidators();
+        Filer filer = processingEnv.getFiler();
+        factoryGenerator = new FactoryGenerator(filer);
+        helpersGenerator = new HelpersGenerator(filer);
     }
 
     @Override
@@ -51,35 +58,35 @@ public class SaltarProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        ArrayList<SaltarActionClass> actionClasses = new ArrayList<SaltarActionClass>();
         for (Element saltarElement : roundEnv.getElementsAnnotatedWith(SaltarAction.class)) {
-            try {
-                new ClassValidator(saltarElement).validate();
-                TypeElement typeElement = (TypeElement) saltarElement;
-                SaltarActionClass actionClass = new SaltarActionClass(elementUtils, typeElement);
-                new AnnotationsValidator(messager, actionClass).validate();
-                actionClasses.add(actionClass);
-
-                new HelperGenerator(actionClass, filer, elementUtils).generate();
-            } catch (IllegalAccessException e) {
-                error(saltarElement, e.getMessage());
+            Set<ValidationError> errors = new HashSet<ValidationError>();
+            errors.addAll(classValidator.validate(saltarElement));
+            if (!errors.isEmpty()) {
+                printErrors(errors);
                 return true;
             }
+            TypeElement typeElement = (TypeElement) saltarElement;
+            SaltarActionClass actionClass = new SaltarActionClass(elementUtils, typeElement);
+            errors.addAll(saltarActionValidators.validate(actionClass));
+            if (!errors.isEmpty()) {
+                printErrors(errors);
+                return true;
+            }
+            actionClasses.add(actionClass);
         }
 
         if (!actionClasses.isEmpty()) {
-            try {
-                new FactoryGenerator(actionClasses, filer, elementUtils).generate();
-            } catch (IllegalAccessException e) {
-                messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-                return true;
-            }
-//            error(actionClasses.get(0).getTypeElement(), "ddd");
-            actionClasses.clear();
+            factoryGenerator.generate(actionClasses);
+            helpersGenerator.generate(actionClasses);
         }
         return false;
     }
 
-    private void error(Element e, String msg, Object... args) {
-        messager.printMessage(Diagnostic.Kind.ERROR, String.format(msg, args), e);
+    private void printErrors(Collection<ValidationError> errors) {
+        for (ValidationError error : errors) {
+            messager.printMessage(Diagnostic.Kind.ERROR, error.getMessage(), error.getElement());
+        }
     }
+
 }

@@ -2,98 +2,94 @@ package com.saltar;
 
 
 import com.google.gson.reflect.TypeToken;
-import com.saltar.annotations.Field;
-import com.saltar.annotations.FieldMap;
-import com.saltar.annotations.Path;
-import com.saltar.annotations.Query;
-import com.saltar.annotations.QueryMap;
-import com.saltar.annotations.RequestHeader;
-import com.saltar.annotations.RequestHeaders;
-import com.saltar.annotations.ResponseHeader;
-import com.saltar.annotations.ResponseHeaders;
-import com.saltar.annotations.SaltarAction;
-import com.saltar.annotations.Status;
+import com.saltar.annotations.*;
+import com.saltar.annotations.Error;
 import com.saltar.converter.Converter;
 import com.saltar.http.Header;
 import com.saltar.http.Request;
 import com.saltar.http.Response;
 import com.saltar.http.ResponseBody;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.util.Elements;
 
-public class HelperGenerator implements Generator {
+public class HelpersGenerator extends Generator {
+    static final String HELPER_SUFFIX = "Helper";
     private static final String BASE_HEADERS_MAP = "headers";
-    private final SaltarActionClass actionClass;
-    private final Filer filer;
-    private final Elements elementUtils;
 
-    public HelperGenerator(SaltarActionClass actionClass, Filer filer, Elements elementUtils) {
-        this.actionClass = actionClass;
-        this.filer = filer;
-        this.elementUtils = elementUtils;
+    public HelpersGenerator(Filer filer) {
+        super(filer);
     }
 
     @Override
-    public void generate() throws IllegalAccessException {
-        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(actionClass.getHelperName())
-                .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(Saltar.ActionHelper.class);//Impossible to use generic in our case
-
-        classBuilder.addMethod(createRequestMethod().build());
-        classBuilder.addMethod(createFillResponseMethod().build());
-        classBuilder.addMethod(createFillErrorMethod().build());
-        try {
-            JavaFile.builder(actionClass.getPackageName(), classBuilder.build()).build().writeTo(filer);
-        } catch (IOException e) {
-            throw new IllegalAccessException(e.getMessage());
+    public void generate(ArrayList<SaltarActionClass> actionClasses) {
+        for (SaltarActionClass saltarActionClass : actionClasses) {
+            generate(saltarActionClass);
         }
     }
 
-    private MethodSpec.Builder createFillErrorMethod() {
-        return MethodSpec.methodBuilder("fillError")
+    private void generate(SaltarActionClass actionClass) {
+        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(actionClass.getHelperName())
                 .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .returns(TypeName.get(actionClass.getTypeElement().asType()))
-                .addParameter(Object.class, "objectAction")
-                .addParameter(Throwable.class, "error")
-                .addStatement("return ($T) objectAction", actionClass.getTypeElement());
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Saltar.ActionHelper.class), actionClass.getTypeName()));
+
+        classBuilder.addMethod(createRequestMethod(actionClass));
+        classBuilder.addMethod(createFillResponseMethod(actionClass));
+        classBuilder.addMethod(createFillErrorMethod(actionClass));
+        saveClass(actionClass.getPackageName(), classBuilder.build());
     }
 
-    private MethodSpec.Builder createRequestMethod() {
+    private MethodSpec createFillErrorMethod(SaltarActionClass actionClass) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("fillError")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(actionClass.getTypeName())
+                .addParameter(actionClass.getTypeName(), "action")
+                .addParameter(Throwable.class, "error");
+        for (Element element : actionClass.getAnnotatedElements(Error.class)) {
+            if (TypeUtils.containsType(element, Throwable.class)) {
+                builder.addStatement("action.$L = error", element);
+            }else if(TypeUtils.containsType(element, Exception.class)){
+                builder.addStatement("action.$L = ($T) error", element, Exception.class);
+            }
+        }
+        builder.addStatement("return action");
+        return builder.build();
+    }
+
+    private MethodSpec createRequestMethod(SaltarActionClass actionClass) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("createRequest")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(Request.class)
-                .addParameter(Object.class, "objectAction")
+                .addParameter(TypeName.get(actionClass.getTypeElement().asType()), "action")
                 .addParameter(RequestBuilder.class, "requestBuilder")
-                .addStatement("$T action = ($T) objectAction", actionClass.getTypeElement().asType(), actionClass.getTypeElement().asType())
                 .addStatement("requestBuilder.setMethod($T.$L)", SaltarAction.Method.class, actionClass.getMethod())
                 .addStatement("requestBuilder.setRequestType($T.$L)", SaltarAction.Type.class, actionClass.getRequestType())
                 .addStatement("requestBuilder.setPath($S)", actionClass.getPath());
-
-        addPathVariables(builder);
-        addRequestHeaders(builder);
-        addRequestFields(builder);
-        addRequestQueries(builder);
-        return builder.addStatement("return requestBuilder.build()");
+        addPathVariables(actionClass, builder);
+        addRequestHeaders(actionClass, builder);
+        addRequestFields(actionClass, builder);
+        addRequestQueries(actionClass, builder);
+        builder.addStatement("return requestBuilder.build()");
+        return builder.build();
     }
 
-    private void addRequestFields(MethodSpec.Builder builder) {
+    private void addRequestFields(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Field.class)) {
             Field annotation = element.getAnnotation(Field.class);
             builder.addStatement("requestBuilder.addField($S, action.$L)", annotation.value(), element);
@@ -108,7 +104,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addRequestQueries(MethodSpec.Builder builder) {
+    private void addRequestQueries(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Query.class)) {
             Query annotation = element.getAnnotation(Query.class);
             builder.addStatement("requestBuilder.addQueryParam($S, action.$L)", annotation.value(), element);
@@ -123,7 +119,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addRequestHeaders(MethodSpec.Builder builder) {
+    private void addRequestHeaders(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(RequestHeader.class)) {
             RequestHeader annotation = element.getAnnotation(RequestHeader.class);
             builder.addStatement("requestBuilder.addHeader($S, action.$L)", annotation.value(), element);
@@ -147,7 +143,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addPathVariables(MethodSpec.Builder builder) {
+    private void addPathVariables(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Path.class)) {
             String path = element.getAnnotation(Path.class).value();
             String name = element.getSimpleName().toString();
@@ -158,26 +154,25 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private MethodSpec.Builder createFillResponseMethod() {
+    private MethodSpec createFillResponseMethod(SaltarActionClass actionClass) {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("fillResponse")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(ClassName.get(actionClass.getTypeElement().asType()))
-                .addParameter(Object.class, "objectAction")
+                .addParameter(actionClass.getTypeName(), "action")
                 .addParameter(Response.class, "response")
-                .addParameter(Converter.class, "converter")
-                .addStatement("$T action = ($T) objectAction", actionClass.getTypeElement().asType(), actionClass.getTypeElement().asType());
+                .addParameter(Converter.class, "converter");
 
-        addStatusField(builder);
-        addConverter(builder);
-        addBodyField(builder);
-        addBasicHeadersMap(builder);
-        addResponseHeaders(builder);
+        addStatusField(actionClass, builder);
+        addConverter(actionClass, builder);
+        addBodyField(actionClass, builder);
+        addBasicHeadersMap(actionClass, builder);
+        addResponseHeaders(actionClass, builder);
         builder.addStatement("return action");
-        return builder;
+        return builder.build();
     }
 
-    private void addConverter(MethodSpec.Builder builder) {
+    private void addConverter(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(com.saltar.annotations.Response.class)) {
             if (TypeUtils.equalTypes(element, ResponseBody.class)) continue;
 
@@ -186,7 +181,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addBodyField(MethodSpec.Builder builder) {
+    private void addBodyField(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(com.saltar.annotations.Response.class)) {
             if (TypeUtils.equalTypes(element, ResponseBody.class)) {
                 builder.addStatement("action.$L = response.getBody()", element);
@@ -194,7 +189,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addBasicHeadersMap(MethodSpec.Builder builder) {
+    private void addBasicHeadersMap(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         boolean hasResponseHeader = !actionClass.getAnnotatedElements(ResponseHeader.class).isEmpty();
         boolean hasResponseHeaders = !actionClass.getAnnotatedElements(ResponseHeaders.class).isEmpty();
         if (!hasResponseHeader && !hasResponseHeaders) {
@@ -206,7 +201,7 @@ public class HelperGenerator implements Generator {
         builder.endControlFlow();
     }
 
-    private void addResponseHeaders(MethodSpec.Builder builder) {
+    private void addResponseHeaders(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(ResponseHeader.class)) {
             ResponseHeader annotation = element.getAnnotation(ResponseHeader.class);
             builder.addStatement("action.$L = $L.get($S)", element.toString(), BASE_HEADERS_MAP, annotation.value());
@@ -226,7 +221,7 @@ public class HelperGenerator implements Generator {
         }
     }
 
-    private void addStatusField(MethodSpec.Builder builder) {
+    private void addStatusField(SaltarActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Status.class)) {
             if (TypeUtils.containsType(element, Boolean.class, boolean.class)) {
                 builder.addStatement("action.$L = response.getStatus() >= 200 && response.getStatus() < 300", element);
@@ -239,4 +234,5 @@ public class HelperGenerator implements Generator {
             }
         }
     }
+
 }
