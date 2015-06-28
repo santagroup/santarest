@@ -75,11 +75,10 @@ public class SaltarProcessor extends AbstractProcessor {
             }
             actionClasses.add(actionClass);
         }
-
         if (!actionClasses.isEmpty()) {
-            factoryGenerator.generate(actionClasses);
             helpersGenerator.generate(actionClasses);
         }
+        factoryGenerator.generate(actionClasses);
         return false;
     }
 

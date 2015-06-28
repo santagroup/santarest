@@ -7,7 +7,9 @@ import com.saltar.converter.Converter;
 import com.saltar.http.Request;
 import com.saltar.http.Response;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -20,7 +22,8 @@ public class Saltar {
     private final HttpClient client;
     private final Executor executor;
     private final Executor callbackExecutor;
-    private final RequestInterceptor requestInterceptor;
+    private final List<RequestInterceptor> requestInterceptors;
+    private final List<ResponseInterceptor> responseInterceptors;
     private final Converter converter;
     private final ActionPoster actionPoster;
 
@@ -32,7 +35,8 @@ public class Saltar {
         this.client = builder.client;
         this.executor = builder.executor;
         this.callbackExecutor = builder.callbackExecutor;
-        this.requestInterceptor = builder.requestInterceptor;
+        this.requestInterceptors = builder.requestInterceptors;
+        this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
         this.actionPoster = builder.actionPoster;
         loadActionHelperFactory();
@@ -54,8 +58,14 @@ public class Saltar {
             throw new IllegalArgumentException("Action object should be annotated by @SaltarAction");
         }
         Request request = helper.createRequest(action, new RequestBuilder(serverUrl, converter));
+        for (RequestInterceptor interceptor : requestInterceptors) {
+            interceptor.intercept(request);
+        }
         try {
             Response response = client.execute(request);
+            for (ResponseInterceptor interceptor : responseInterceptors) {
+                interceptor.intercept(response);
+            }
             action = helper.fillResponse(action, response, converter);
         } catch (Exception error) {
             action = helper.fillError(action, error);
@@ -113,24 +123,24 @@ public class Saltar {
     }
 
     /**
-     * Intercept every request before it is executed in order to add additional data.
+     * Intercept every request before it is executed.
      */
     public static interface RequestInterceptor {
         /**
-         * Called for every request. Add data using methods on the supplied {@link RequestFacade}.
+         * Called for every request. You can get data from request before invoke it
          */
         void intercept(Request request);
+    }
 
-
+    /**
+     * Intercept every response.
+     */
+    public static interface ResponseInterceptor {
         /**
-         * A {@link RequestInterceptor} which does no modification of requests.
+         * Called for every get response. You can get data from response after invoke it
          */
-        RequestInterceptor NONE = new RequestInterceptor() {
-            @Override
-            public void intercept(Request request) {
-                // Do nothing.
-            }
-        };
+        void intercept(Response response);
+
     }
 
     private static class CallbackWrapper<A> implements Callback<A> {
@@ -204,7 +214,8 @@ public class Saltar {
         private HttpClient client;
         private Executor executor;
         private Executor callbackExecutor;
-        private RequestInterceptor requestInterceptor;
+        private List<RequestInterceptor> requestInterceptors = new ArrayList<RequestInterceptor>();
+        private List<ResponseInterceptor> responseInterceptors = new ArrayList<ResponseInterceptor>();
         private Converter converter;
         private ActionPoster actionPoster;
 
@@ -251,14 +262,19 @@ public class Saltar {
             return this;
         }
 
-        /**
-         * A request interceptor for adding data to every request.
-         */
-        public Builder setRequestInterceptor(RequestInterceptor requestInterceptor) {
+        public Builder addRequestInterceptors(RequestInterceptor requestInterceptor) {
             if (requestInterceptor == null) {
                 throw new NullPointerException("Request interceptor may not be null.");
             }
-            this.requestInterceptor = requestInterceptor;
+            this.requestInterceptors.add(requestInterceptor);
+            return this;
+        }
+
+        public Builder addResponseInterceptors(ResponseInterceptor responseInterceptor) {
+            if (responseInterceptor == null) {
+                throw new NullPointerException("Request interceptor may not be null.");
+            }
+            this.responseInterceptors.add(responseInterceptor);
             return this;
         }
 
@@ -307,9 +323,6 @@ public class Saltar {
             }
             if (callbackExecutor == null) {
                 callbackExecutor = Defaults.getDefaultCallbackExecutor();
-            }
-            if (requestInterceptor == null) {
-                requestInterceptor = RequestInterceptor.NONE;
             }
             if (actionPoster == null) {
                 actionPoster = Defaults.getDefualtActionPoster();

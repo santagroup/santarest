@@ -33,7 +33,7 @@ public class AnnotationTypesValidator implements Validator<SaltarActionClass> {
             if (annotation == null) continue;
             List<String> typeNames = new ArrayList<String>();
             for (java.lang.reflect.Type type : types) {
-                typeNames.add(type.getTypeName());
+                typeNames.add(TypeName.get(type).toString());
             }
             if (typeNames.contains(TypeName.get(element.asType()).toString())) {
                 continue;

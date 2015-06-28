@@ -20,7 +20,7 @@ public class TypeUtils {
     }
 
     public static boolean equalTypes(Element element, Type type) {
-        return TypeName.get(element.asType()).toString().equals(type.getTypeName());
+        return TypeName.get(element.asType()).toString().equals(TypeName.get(type).toString());
     }
 
     public static boolean containsType(Element element, Class... classes) {

@@ -25,7 +25,7 @@ public class ExampleAction {
     @Response
     List<Contributor> contributorss;
     @ResponseHeaders
-    HashMap<String, String> headersMaps;
+    Map<String, String> headersMaps;
     @RequestHeaders
     List<Header> requestHeaders;
     @Status
