@@ -64,14 +64,14 @@ public class SaltarProcessor extends AbstractProcessor {
             errors.addAll(classValidator.validate(saltarElement));
             if (!errors.isEmpty()) {
                 printErrors(errors);
-                return true;
+                continue;
             }
             TypeElement typeElement = (TypeElement) saltarElement;
             SaltarActionClass actionClass = new SaltarActionClass(elementUtils, typeElement);
             errors.addAll(saltarActionValidators.validate(actionClass));
             if (!errors.isEmpty()) {
                 printErrors(errors);
-                return true;
+                continue;
             }
             actionClasses.add(actionClass);
         }

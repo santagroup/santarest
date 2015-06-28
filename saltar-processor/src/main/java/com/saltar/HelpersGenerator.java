@@ -2,8 +2,18 @@ package com.saltar;
 
 
 import com.google.gson.reflect.TypeToken;
-import com.saltar.annotations.*;
 import com.saltar.annotations.Error;
+import com.saltar.annotations.Field;
+import com.saltar.annotations.FieldMap;
+import com.saltar.annotations.Path;
+import com.saltar.annotations.Query;
+import com.saltar.annotations.QueryMap;
+import com.saltar.annotations.RequestHeader;
+import com.saltar.annotations.RequestHeaders;
+import com.saltar.annotations.ResponseHeader;
+import com.saltar.annotations.ResponseHeaders;
+import com.saltar.annotations.SaltarAction;
+import com.saltar.annotations.Status;
 import com.saltar.converter.Converter;
 import com.saltar.http.Header;
 import com.saltar.http.Request;
@@ -21,7 +31,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -63,7 +72,7 @@ public class HelpersGenerator extends Generator {
         for (Element element : actionClass.getAnnotatedElements(Error.class)) {
             if (TypeUtils.containsType(element, Throwable.class)) {
                 builder.addStatement("action.$L = error", element);
-            }else if(TypeUtils.containsType(element, Exception.class)){
+            } else if (TypeUtils.containsType(element, Exception.class)) {
                 builder.addStatement("action.$L = ($T) error", element, Exception.class);
             }
         }

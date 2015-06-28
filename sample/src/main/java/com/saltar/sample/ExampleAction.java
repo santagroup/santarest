@@ -6,8 +6,10 @@ import com.saltar.annotations.SaltarAction.Type;
 import com.saltar.http.Header;
 import com.saltar.http.ResponseBody;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @SaltarAction(path = "/repos/{owner}/{repo}/contributors",
               type = Type.SIMPLE,
@@ -23,7 +25,7 @@ public class ExampleAction {
     @Response
     List<Contributor> contributorss;
     @ResponseHeaders
-    Map<String, String> headersMaps;
+    HashMap<String, String> headersMaps;
     @RequestHeaders
     List<Header> requestHeaders;
     @Status
@@ -55,9 +57,6 @@ public class ExampleAction {
         return headersMaps;
     }
 
-    public List<Header> getHeaders() {
-        return requestHeaders;
-    }
 
     public String getRequestId() {
         return requestId;
