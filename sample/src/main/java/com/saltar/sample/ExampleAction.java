@@ -1,62 +1,62 @@
 package com.saltar.sample;
 
-import com.saltar.annotations.Path;
-import com.saltar.annotations.Response;
-import com.saltar.annotations.ResponseHeader;
-import com.saltar.annotations.ResponseHeaders;
-import com.saltar.annotations.SaltarAction;
-import com.saltar.annotations.Status;
+import com.saltar.annotations.*;
+import com.saltar.annotations.Error;
+import com.saltar.annotations.SaltarAction.Type;
 import com.saltar.http.Header;
 import com.saltar.http.ResponseBody;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-/**
- * Created by dirong on 6/18/15.
- */
-@SaltarAction(path = "/repos/{owner}/{repo}/contributors")
+@SaltarAction(path = "/repos/{owner}/{repo}/contributors",
+              type = Type.SIMPLE,
+              value = SaltarAction.Method.GET)
 public class ExampleAction {
 
     @Path("owner")
-    String owner;
+    String ownerr;
     @Path("repo")
-    String repo;
+    String repoo;
     @Response
-    List<Contributor> contributors;
+    ResponseBody responseBodys;
     @Response
-    ResponseBody responseBody;
+    List<Contributor> contributorss;
     @ResponseHeaders
-    Map<String, String> headersMap;
-    @ResponseHeaders
-    List<Header> headers;
+    Map<String, String> headersMaps;
+    @RequestHeaders
+    List<Header> requestHeaders;
     @Status
-    int status;
+    long status;
     @Status
     boolean success;
+//    @RequestHeader("X-GitHub-Request-Id")
+//    String requestIdRequest;
     @ResponseHeader("X-GitHub-Request-Id")
     String requestId;
 
+    @Error
+    Exception error;
+
     public ExampleAction(String owner, String repo) {
-        this.owner = owner;
-        this.repo = repo;
+        this.ownerr = owner;
+        this.repoo = repo;
     }
 
     public List<Contributor> getContributors() {
-        return contributors;
+        return contributorss;
     }
 
     public ResponseBody getResponseBody() {
-        return responseBody;
+        return responseBodys;
     }
 
     public Map<String, String> getHeadersMap() {
-        return headersMap;
+        return headersMaps;
     }
 
-    public List<Header> getHeaders() {
-        return headers;
-    }
 
     public String getRequestId() {
         return requestId;
@@ -74,12 +74,12 @@ public class ExampleAction {
     @Override
     public String toString() {
         return "ExampleAction{" +
-                "owner='" + owner + '\'' +
-                ", repo='" + repo + '\'' +
-                ", contributors=" + contributors +
-                ", responseBody=" + responseBody +
-                ", headersMap=" + headersMap +
-                ", headers=" + headers +
+                "owner='" + ownerr + '\'' +
+                ", repo='" + repoo + '\'' +
+                ", contributors=" + contributorss +
+                ", responseBody=" + responseBodys +
+                ", headersMap=" + headersMaps +
+                ", headers=" + requestHeaders +
                 ", status=" + status +
                 '}';
     }
