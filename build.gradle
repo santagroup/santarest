@@ -7,11 +7,51 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
+        classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:2.2.+'
     }
 }
 
 allprojects {
     repositories {
+        mavenCentral()
         jcenter()
     }
 }
+
+["core", "santarest-compiler"].each { projectName ->
+    project(":$projectName") {
+
+        apply plugin: "maven"
+        apply plugin: 'signing'
+
+        group = "com.santarest"
+        version = '0.0.1-nightly-02072015-5'
+
+        signing {
+            required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
+            sign configurations.archives
+        }
+
+        uploadArchives {
+            repositories.mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                String status = getParent().status
+                String contextUrl = "${artifactory_contextUrl}" + "tn-labs"
+                if (status.equals('snapshot')) {
+                    contextUrl = "${artifactory_contextUrl}" + "tn-labs-snapshot"
+                } else if (status.equals("experimental")) {
+                    contextUrl = "${artifactory_contextUrl}" + "tn-labs-experimental"
+                }
+                repository(url: contextUrl) {
+                    authentication(userName: artifactory_user, password: artifactory_password)
+                }
+                if(projectName.equals("core")){
+                    pom.artifactId = "santarest"
+                }
+
+            }
+        }
+
+    }
+}
+
