@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
-    }
-}
-
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
@@ -18,7 +9,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.nest.saltar.sample"
+        applicationId "com.santarest.sample"
         minSdkVersion 10
         targetSdkVersion 21
         versionCode 1
@@ -36,5 +27,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'com.squareup:otto:+'
     compile project(":core")
-    apt project(':saltar-processor')
+    apt project(':santarest-compiler')
 }
