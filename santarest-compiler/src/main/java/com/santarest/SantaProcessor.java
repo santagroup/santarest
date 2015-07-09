@@ -82,7 +82,6 @@ public class SantaProcessor extends AbstractProcessor {
             helpersGenerator.generate(actionClasses);
         }
         factoryGenerator.generate(actionClasses);
-        messager.printMessage(Diagnostic.Kind.ERROR, "dddd", actionClasses.get(0).getTypeElement());
         return true;
     }
 

@@ -25,7 +25,7 @@ allprojects {
         apply plugin: 'signing'
 
         group = "com.santarest"
-        version = '0.0.1-nightly-02072015-5'
+        version = '0.0.1-nightly-09072015'
 
         signing {
             required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
