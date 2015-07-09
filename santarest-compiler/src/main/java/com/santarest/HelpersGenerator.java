@@ -37,6 +37,12 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
+import static com.santarest.CollectionTypes.TYPE_COLLECTION_WITH_HEADER;
+import static com.santarest.CollectionTypes.TYPE_LIST_WITH_HEADER;
+import static com.santarest.CollectionTypes.TYPE_MAP_WITH_STRINGS;
+import static com.santarest.CollectionTypes.TYPE_MAP_WITH_STRING_KEYS;
+import static com.santarest.TypeUtils.equalTypes;
+
 public class HelpersGenerator extends Generator {
     static final String HELPER_SUFFIX = "Helper";
     private static final String BASE_HEADERS_MAP = "headers";
@@ -105,13 +111,17 @@ public class HelpersGenerator extends Generator {
     private void addRequestFields(RestActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Field.class)) {
             Field annotation = element.getAnnotation(Field.class);
-            builder.addStatement("requestBuilder.addField($S, action.$L)", annotation.value(), element);
+            builder.beginControlFlow("if (action.$L != null)", element);
+            builder.addStatement("requestBuilder.addField($S, action.$L.toString())", annotation.value(), element);
+            builder.endControlFlow();
         }
 
         for (Element element : actionClass.getAnnotatedElements(FieldMap.class)) {
-            if (TypeUtils.isMapString(element)) {
+            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
+                builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T fieldName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addField(fieldName, action.$L.get(fieldName))", element);
+                builder.addStatement("requestBuilder.addField(fieldName, action.$L.get(fieldName).toString())", element);
+                builder.endControlFlow();
                 builder.endControlFlow();
             }
         }
@@ -120,20 +130,24 @@ public class HelpersGenerator extends Generator {
     private void addRequestQueries(RestActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Query.class)) {
             Query annotation = element.getAnnotation(Query.class);
-            builder.addStatement("requestBuilder.addQueryParam($S, action.$L, $L, $L)", annotation.value(), element, annotation.encodeName(), annotation.encodeValue());
+            builder.beginControlFlow("if (action.$L != null)", element);
+            builder.addStatement("requestBuilder.addQueryParam($S, action.$L.toString(), $L, $L)", annotation.value(), element, annotation.encodeName(), annotation.encodeValue());
+            builder.endControlFlow();
         }
 
         for (Element element : actionClass.getAnnotatedElements(QueryMap.class)) {
             QueryMap annotation = element.getAnnotation(QueryMap.class);
-            if (TypeUtils.isMapString(element)) {
+            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
+                builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T queryName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addQueryParam(queryName, action.$L.get(queryName)), $L, $L", element, annotation.encodeNames(), annotation.encodeValues());
+                builder.addStatement("requestBuilder.addQueryParam(queryName, action.$L.get(queryName).toString(), $L, $L)", element, annotation.encodeNames(), annotation.encodeValues());
+                builder.endControlFlow();
                 builder.endControlFlow();
             }
         }
     }
 
-    private void addRequestBody(RestActionClass actionClass, MethodSpec.Builder builder){
+    private void addRequestBody(RestActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(Body.class)) {
             builder.addStatement("requestBuilder.setBody(action.$L)", element);
             break;
@@ -143,18 +157,18 @@ public class HelpersGenerator extends Generator {
     private void addRequestHeaders(RestActionClass actionClass, MethodSpec.Builder builder) {
         for (Element element : actionClass.getAnnotatedElements(RequestHeader.class)) {
             RequestHeader annotation = element.getAnnotation(RequestHeader.class);
-            builder.addStatement("requestBuilder.addHeader($S, action.$L)", annotation.value(), element);
+            builder.beginControlFlow("if (action.$L != null)", element);
+            builder.addStatement("requestBuilder.addHeader($S, action.$L.toString())", annotation.value(), element);
+            builder.endControlFlow();
         }
-        TypeToken listType = new TypeToken<List<Header>>() {
-        };
         for (Element element : actionClass.getAnnotatedElements(RequestHeaders.class)) {
-            if (TypeUtils.isMapString(element)) {
+            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T headerName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName))", element);
+                builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName).toString())", element);
                 builder.endControlFlow();
                 builder.endControlFlow();
-            } else if (TypeUtils.equalTypes(element, listType) || TypeUtils.equalTypes(element, Header[].class)) {
+            } else if (equalTypes(element, TYPE_LIST_WITH_HEADER) || equalTypes(element, Header[].class) || equalTypes(element, TYPE_COLLECTION_WITH_HEADER)) {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.beginControlFlow("for ($T header : action.$L)", Header.class, element);
                 builder.addStatement("requestBuilder.addHeader(header.getName(), header.getValue())");
@@ -173,7 +187,9 @@ public class HelpersGenerator extends Generator {
                 path = name;
             }
             boolean encode = param.encode();
-            builder.addStatement("requestBuilder.addPathParam($S, action.$L, $L)", path, name, encode);
+            builder.beginControlFlow("if (action.$L != null)", name);
+            builder.addStatement("requestBuilder.addPathParam($S, action.$L.toString(), $L)", path, name, encode);
+            builder.endControlFlow();
         }
     }
 
@@ -197,13 +213,13 @@ public class HelpersGenerator extends Generator {
     private void addResponses(RestActionClass actionClass, MethodSpec.Builder builder) {
         List<Element> errorsElements = actionClass.getAnnotatedElements(ErrorResponse.class);
         List<Element> successElements = actionClass.getAnnotatedElements(com.santarest.annotations.Response.class);
-        if(!errorsElements.isEmpty()){
+        if (!errorsElements.isEmpty()) {
             builder.beginControlFlow("if(response.isSuccessful())");
         }
         for (Element element : successElements) {
             addResponseStatements(actionClass, builder, element);
         }
-        if(!errorsElements.isEmpty()){
+        if (!errorsElements.isEmpty()) {
             builder.nextControlFlow("else");
             for (Element element : errorsElements) {
                 addResponseStatements(actionClass, builder, element);
@@ -212,13 +228,13 @@ public class HelpersGenerator extends Generator {
         }
     }
 
-    private void addResponseStatements(RestActionClass actionClass, MethodSpec.Builder builder, Element element){
+    private void addResponseStatements(RestActionClass actionClass, MethodSpec.Builder builder, Element element) {
         String fieldAddress = getFieldAddress(actionClass, element);
-        if (TypeUtils.equalTypes(element, ResponseBody.class)) {
+        if (equalTypes(element, ResponseBody.class)) {
             builder.addStatement(fieldAddress + " = response.getBody()", element);
-        } else if (TypeUtils.equalTypes(element, String.class)){
+        } else if (equalTypes(element, String.class)) {
             builder.addStatement(fieldAddress + " = response.getBody().toString()", element);
-        }else {
+        } else {
             builder.addStatement(fieldAddress + " = ($T) converter.fromBody(response.getBody(), new $T<$T>(){}.getType())", element, element.asType(), TypeToken.class, element.asType());
         }
     }
@@ -242,15 +258,13 @@ public class HelpersGenerator extends Generator {
             builder.addStatement(fieldAddress + " = $L.get($S)", element.toString(), BASE_HEADERS_MAP, annotation.value());
         }
 
-        TypeToken<List<Header>> listType = new TypeToken<List<Header>>() {
-        };
         for (Element element : actionClass.getAnnotatedElements(ResponseHeaders.class)) {
             String fieldAddress = getFieldAddress(actionClass, element);
-            if (TypeUtils.isMapString(element)) {
-                builder.addStatement(fieldAddress+" = $L", element, BASE_HEADERS_MAP);
-            } else if (TypeUtils.equalTypes(element, listType)) {
+            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRINGS)) {
+                builder.addStatement(fieldAddress + " = $L", element, BASE_HEADERS_MAP);
+            } else if (equalTypes(element, TYPE_LIST_WITH_HEADER) || equalTypes(element, TYPE_COLLECTION_WITH_HEADER)) {
                 builder.addStatement(fieldAddress + " = response.getHeaders()", element);
-            } else if (TypeUtils.equalTypes(element, Header[].class)) {
+            } else if (equalTypes(element, Header[].class)) {
                 builder.addStatement(fieldAddress + " = new $T[response.getHeaders().size()]", element, Header.class);
                 builder.addStatement(fieldAddress + " = response.getHeaders().toArray(action.$L)", element, element);
             }
@@ -264,7 +278,7 @@ public class HelpersGenerator extends Generator {
                 builder.addStatement(fieldAddress + " = response.isSuccessful()", element);
             } else if (TypeUtils.containsType(element, Integer.class, int.class, long.class)) {
                 builder.addStatement(fieldAddress + " = ($T) response.getStatus()", element, element.asType());
-            } else if (TypeUtils.equalTypes(element, String.class)) {
+            } else if (equalTypes(element, String.class)) {
                 builder.addStatement(fieldAddress + " = Integer.toString(response.getStatus())", element);
             } else if (TypeUtils.containsType(element, Long.class)) {
                 builder.addStatement(fieldAddress + " = (long) response.getStatus()", element);
@@ -272,11 +286,11 @@ public class HelpersGenerator extends Generator {
         }
     }
 
-    private static String getFieldAddress(RestActionClass actionClass, Element element){
+    private static String getFieldAddress(RestActionClass actionClass, Element element) {
         String address;
-        if(actionClass.getTypeElement().equals(element.getEnclosingElement())){
+        if (actionClass.getTypeElement().equals(element.getEnclosingElement())) {
             address = "action.$L";
-        }else{
+        } else {
             address = String.format("((%s)action).$L", element.getEnclosingElement());
         }
         return address;
