@@ -2,13 +2,13 @@ package com.santarest.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.santarest.http.ByteArrayBody;
 import com.santarest.http.RequestBody;
 import com.santarest.http.ResponseBody;
 import com.santarest.utils.MimeUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 
@@ -65,39 +65,9 @@ public class GsonConverter implements Converter {
     @Override
     public RequestBody toBody(Object object) {
         try {
-            return new GsonRequestBody(gson.toJson(object).getBytes(charset), charset);
+            return new ByteArrayBody("application/json; charset=" + charset, gson.toJson(object).getBytes(charset));
         } catch (UnsupportedEncodingException e) {
             throw new AssertionError(e);
-        }
-    }
-
-    private static class GsonRequestBody implements RequestBody {
-        private final byte[] jsonBytes;
-        private final String mimeType;
-
-        GsonRequestBody(byte[] jsonBytes, String encode) {
-            this.jsonBytes = jsonBytes;
-            this.mimeType = "application/json; charset=" + encode;
-        }
-
-        @Override
-        public String fileName() {
-            return null;
-        }
-
-        @Override
-        public String mimeType() {
-            return mimeType;
-        }
-
-        @Override
-        public long length() {
-            return jsonBytes.length;
-        }
-
-        @Override
-        public void writeTo(OutputStream out) throws IOException {
-            out.write(jsonBytes);
         }
     }
 }
