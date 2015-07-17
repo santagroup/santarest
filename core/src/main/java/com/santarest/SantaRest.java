@@ -1,5 +1,6 @@
 package com.santarest;
 
+import com.santarest.annotations.RestAction;
 import com.santarest.callback.ActionPoster;
 import com.santarest.callback.Callback;
 import com.santarest.client.HttpClient;
@@ -52,10 +53,16 @@ public class SantaRest {
         }
     }
 
+    /**
+     * Request will be performed in executing thread
+     *
+     * @param action any object annotated with
+     * @see com.santarest.annotations.RestAction
+     */
     public <A> A executeAction(A action) {
         ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
-            throw new IllegalArgumentException("Action object should be annotated by @SaltarAction");
+            throw new IllegalArgumentException("Action object should be annotated by " + RestAction.class.getName());
         }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         requestInterceptor.intercept(builder);
@@ -72,6 +79,22 @@ public class SantaRest {
         return action;
     }
 
+    /**
+     * Request will be performed in working thread
+     *
+     * @param action any object annotated with
+     * @see com.santarest.annotations.RestAction
+     */
+    public <A> void sendAction(A action) {
+        sendAction(action, null);
+    }
+
+    /**
+     * Request will be performed in working thread
+     *
+     * @param action any object annotated with
+     * @see com.santarest.annotations.RestAction
+     */
     public <A> void sendAction(final A action, Callback<A> callback) {
         CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, callback);
         executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
@@ -80,10 +103,6 @@ public class SantaRest {
                 executeAction(action);
             }
         });
-    }
-
-    public <A> void sendAction(A action) {
-        sendAction(action, null);
     }
 
     public void subscribe(Object subscriber) {
@@ -109,7 +128,7 @@ public class SantaRest {
         return helper;
     }
 
-    public static interface ActionHelper<T> {
+    public interface ActionHelper<T> {
         Request createRequest(T action, RequestBuilder requestBuilder);
 
         T fillResponse(T action, Response response, Converter converter);
@@ -117,14 +136,14 @@ public class SantaRest {
         T fillError(T action, Throwable error);
     }
 
-    static interface ActionHelperFactory {
+    interface ActionHelperFactory {
         ActionHelper make(Class actionClass);
     }
 
     /**
      * Intercept every request before it is executed.
      */
-    public static interface RequestInterceptor {
+    public interface RequestInterceptor {
         /**
          * Called for every request. You can add your data to builder before create request
          *
@@ -136,7 +155,7 @@ public class SantaRest {
     /**
      * Intercept every response.
      */
-    public static interface ResponseListener<A> {
+    public interface ResponseListener<A> {
         /**
          * Called for every get response. You can get data from response after invoke it
          */
@@ -318,9 +337,6 @@ public class SantaRest {
             }
             if (executor == null) {
                 executor = Defaults.getDefaultHttpExecutor();
-            }
-            if (converter == null) {
-                converter = Defaults.getConverter();
             }
             if (callbackExecutor == null) {
                 callbackExecutor = Defaults.getDefaultCallbackExecutor();
