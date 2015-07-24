@@ -15,8 +15,7 @@
  */
 package com.santarest.converter;
 
-import com.santarest.http.ResponseBody;
-import com.santarest.http.RequestBody;
+import com.santarest.http.ByteBody;
 
 import java.lang.reflect.Type;
 
@@ -34,7 +33,7 @@ public interface Converter {
      * @return Instance of {@code type} which will be cast by the caller.
      * @throws ConversionException if conversion was unable to complete.
      */
-    Object fromBody(ResponseBody body, Type type) throws ConversionException;
+    Object fromBody(ByteBody body, Type type) throws ConversionException;
 
     /**
      * Convert an object to an appropriate representation for HTTP transport.
@@ -42,5 +41,5 @@ public interface Converter {
      * @param object Object instance to convert.
      * @return Representation of the specified object as bytes.
      */
-    RequestBody toBody(Object object);
+    ByteBody toBody(Object object);
 }

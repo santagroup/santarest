@@ -27,9 +27,9 @@ public final class Request {
     private final String method;
     private final String url;
     private final List<Header> headers;
-    private final RequestBody body;
+    private final ByteBody body;
 
-    public Request(String method, String url, List<Header> headers, RequestBody body) {
+    public Request(String method, String url, List<Header> headers, ByteBody body) {
         if (method == null) {
             throw new NullPointerException("Method must not be null.");
         }
@@ -72,7 +72,7 @@ public final class Request {
     /**
      * Returns the request body or {@code null}.
      */
-    public RequestBody getBody() {
+    public ByteBody getBody() {
         return body;
     }
 

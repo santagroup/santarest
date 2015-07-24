@@ -1,10 +1,9 @@
 package com.santarest;
 
 import com.santarest.http.ByteArrayBody;
+import com.santarest.http.ByteBody;
 import com.santarest.http.Request;
-import com.santarest.http.RequestBody;
 import com.santarest.http.Response;
-import com.santarest.http.ResponseBody;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +35,7 @@ final class Utils {
      * byte[] rather than an input stream.
      */
     static Request readBodyToBytesIfNecessary(Request request) throws IOException {
-        RequestBody body = request.getBody();
+        ByteBody body = request.getBody();
         if (body == null || body instanceof ByteArrayBody) {
             return request;
         }
@@ -54,7 +53,7 @@ final class Utils {
      * byte[] rather than an input stream.
      */
     static Response readBodyToBytesIfNecessary(Response response) throws IOException {
-        ResponseBody body = response.getBody();
+        ByteBody body = response.getBody();
         if (body == null || body instanceof ByteArrayBody) {
             return response;
         }
@@ -76,7 +75,7 @@ final class Utils {
         }
     }
 
-    static Response replaceResponseBody(Response response, ResponseBody body) {
+    static Response replaceResponseBody(Response response, ByteBody body) {
         return new Response(response.getUrl(), response.getStatus(), response.getReason(),
                 response.getHeaders(), body);
     }

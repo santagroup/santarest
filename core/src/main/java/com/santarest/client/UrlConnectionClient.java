@@ -16,13 +16,11 @@
 package com.santarest.client;
 
 import com.santarest.http.ByteArrayBody;
+import com.santarest.http.ByteBody;
 import com.santarest.http.Header;
 import com.santarest.http.Request;
-import com.santarest.http.RequestBody;
 import com.santarest.http.Response;
-import com.santarest.http.ResponseBody;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +63,7 @@ public class UrlConnectionClient implements HttpClient {
             connection.addRequestProperty(header.getName(), header.getValue());
         }
 
-        RequestBody body = request.getBody();
+        ByteBody body = request.getBody();
         if (body != null) {
             connection.setDoOutput(true);
             connection.addRequestProperty("Content-Type", body.mimeType());

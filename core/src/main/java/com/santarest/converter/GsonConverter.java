@@ -3,8 +3,7 @@ package com.santarest.converter;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.santarest.http.ByteArrayBody;
-import com.santarest.http.RequestBody;
-import com.santarest.http.ResponseBody;
+import com.santarest.http.ByteBody;
 import com.santarest.utils.MimeUtil;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class GsonConverter implements Converter {
     }
 
     @Override
-    public Object fromBody(ResponseBody body, Type type) throws ConversionException {
+    public Object fromBody(ByteBody body, Type type) throws ConversionException {
         String charset = this.charset;
         if (body.mimeType() != null) {
             charset = MimeUtil.parseCharset(body.mimeType(), charset);
@@ -63,7 +62,7 @@ public class GsonConverter implements Converter {
     }
 
     @Override
-    public RequestBody toBody(Object object) {
+    public ByteBody toBody(Object object) {
         try {
             return new ByteArrayBody("application/json; charset=" + charset, gson.toJson(object).getBytes(charset));
         } catch (UnsupportedEncodingException e) {
