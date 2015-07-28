@@ -24,11 +24,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-public final class MultipartRequestBody extends ByteBody {
+public final class MultipartRequestBody extends HttpBody {
   public static final String DEFAULT_TRANSFER_ENCODING = "binary";
 
   private static final class MimePart {
-    private final ByteBody body;
+    private final HttpBody body;
     private final String name;
     private final String transferEncoding;
     private final boolean isFirst;
@@ -38,7 +38,7 @@ public final class MultipartRequestBody extends ByteBody {
     private byte[] partHeader;
     private boolean isBuilt;
 
-    public MimePart(String name, String transferEncoding, ByteBody body, String boundary,
+    public MimePart(String name, String transferEncoding, HttpBody body, String boundary,
         boolean isFirst) {
       this.name = name;
       this.transferEncoding = transferEncoding;
@@ -89,7 +89,7 @@ public final class MultipartRequestBody extends ByteBody {
   }
 
   @Override
-  public byte[] getBytes() {
+  public byte[] getContent() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try {
       for (MimePart part : mimeParts) {
@@ -112,11 +112,11 @@ public final class MultipartRequestBody extends ByteBody {
     return parts;
   }
 
-  public void addPart(String name, ByteBody body) {
+  public void addPart(String name, HttpBody body) {
     addPart(name, DEFAULT_TRANSFER_ENCODING, body);
   }
 
-  public void addPart(String name, String transferEncoding, ByteBody body) {
+  public void addPart(String name, String transferEncoding, HttpBody body) {
     if (name == null) {
       throw new NullPointerException("Part name must not be null.");
     }
@@ -170,7 +170,7 @@ public final class MultipartRequestBody extends ByteBody {
     }
   }
 
-  private static byte[] buildHeader(String name, String transferEncoding, ByteBody value) {
+  private static byte[] buildHeader(String name, String transferEncoding, HttpBody value) {
     try {
       // Initial size estimate based on always-present strings and conservative value lengths.
       StringBuilder headers = new StringBuilder(128);

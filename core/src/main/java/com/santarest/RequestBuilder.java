@@ -17,9 +17,9 @@ package com.santarest;
 
 import com.santarest.annotations.RestAction;
 import com.santarest.converter.Converter;
-import com.santarest.http.ByteBody;
 import com.santarest.http.FormUrlEncodedRequestBody;
 import com.santarest.http.Header;
+import com.santarest.http.HttpBody;
 import com.santarest.http.MultipartRequestBody;
 import com.santarest.http.Request;
 
@@ -39,7 +39,7 @@ public final class RequestBuilder {
 
     private FormUrlEncodedRequestBody formBody;
     private MultipartRequestBody multipartBody;
-    private ByteBody body;
+    private HttpBody body;
 
     private String path = "";
     private StringBuilder queryParams;
@@ -202,7 +202,7 @@ public final class RequestBuilder {
         }
     }
 
-    public void addPart(String name, ByteBody value, String transferEncoding) {
+    public void addPart(String name, HttpBody value, String transferEncoding) {
         multipartBody.addPart(transferEncoding, value);
     }
 
@@ -213,8 +213,8 @@ public final class RequestBuilder {
         if (value == null) {
             throw new IllegalArgumentException("Body parameter value must not be null.");
         }
-        if (value instanceof ByteBody) {
-            body = (ByteBody) value;
+        if (value instanceof HttpBody) {
+            body = (HttpBody) value;
         } else {
             body = converter.toBody(value);
         }
@@ -239,7 +239,7 @@ public final class RequestBuilder {
         if (queryParams != null) {
             url.append(queryParams);
         }
-        ByteBody body = this.body;
+        HttpBody body = this.body;
         List<Header> headers = this.headers;
         if (contentTypeHeader != null) {
             if (body != null) {
@@ -256,19 +256,19 @@ public final class RequestBuilder {
         return new Request(requestMethod.name(), url.toString(), headers, body);
     }
 
-    private static class MimeOverridingTypedOutput extends ByteBody {
-        private final ByteBody delegate;
+    private static class MimeOverridingTypedOutput extends HttpBody {
+        private final HttpBody delegate;
         private final String mimeType;
 
-        MimeOverridingTypedOutput(ByteBody delegate, String mimeType) {
+        MimeOverridingTypedOutput(HttpBody delegate, String mimeType) {
             super(mimeType);
             this.delegate = delegate;
             this.mimeType = mimeType;
         }
 
         @Override
-        public byte[] getBytes() throws IOException{
-            return delegate.getBytes();
+        public byte[] getContent() throws IOException {
+            return delegate.getContent();
         }
 
         @Override

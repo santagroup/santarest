@@ -33,7 +33,7 @@ public class StringBody extends ByteArrayBody {
 
   @Override public String toString() {
     try {
-      return "StringBody[" + new String(getBytes(), "UTF-8") + "]";
+      return "StringBody[" + new String(getContent(), "UTF-8") + "]";
     } catch (UnsupportedEncodingException e) {
       throw new AssertionError("Must be able to decode UTF-8");
     }

@@ -16,8 +16,8 @@
 package com.santarest.client;
 
 import com.santarest.http.ByteArrayBody;
-import com.santarest.http.ByteBody;
 import com.santarest.http.Header;
+import com.santarest.http.HttpBody;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 
@@ -63,7 +63,7 @@ public class UrlConnectionClient implements HttpClient {
             connection.addRequestProperty(header.getName(), header.getValue());
         }
 
-        ByteBody body = request.getBody();
+        HttpBody body = request.getBody();
         if (body != null) {
             connection.setDoOutput(true);
             connection.addRequestProperty("Content-Type", body.mimeType());

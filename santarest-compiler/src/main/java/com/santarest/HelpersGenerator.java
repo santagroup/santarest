@@ -17,8 +17,8 @@ import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
 import com.santarest.converter.Converter;
-import com.santarest.http.ByteBody;
 import com.santarest.http.Header;
+import com.santarest.http.HttpBody;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.javapoet.ClassName;
@@ -230,7 +230,7 @@ public class HelpersGenerator extends Generator {
 
     private void addResponseStatements(RestActionClass actionClass, MethodSpec.Builder builder, Element element) {
         String fieldAddress = getFieldAddress(actionClass, element);
-        if (equalTypes(element, ByteBody.class)) {
+        if (equalTypes(element, HttpBody.class)) {
             builder.addStatement(fieldAddress + " = response.getBody()", element);
         } else if (equalTypes(element, String.class)) {
             builder.addStatement(fieldAddress + " = response.getBody().toString()", element);

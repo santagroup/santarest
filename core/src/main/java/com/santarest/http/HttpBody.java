@@ -29,14 +29,14 @@ import java.util.Arrays;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-public abstract class ByteBody  {
+public abstract class HttpBody {
     private final String mimeType;
     private byte[] bytes;
 
     /**
      * Constructs a new typed byte array.  Sets mimeType to {@code application/unknown} if absent.
      */
-    public ByteBody(String mimeType) {
+    public HttpBody(String mimeType) {
         if (mimeType == null) {
             mimeType = "application/unknown";
         }
@@ -46,7 +46,7 @@ public abstract class ByteBody  {
     private byte[] bytes() {
         if (bytes == null) {
             try {
-                bytes = getBytes();
+                bytes = getContent();
                 if (bytes == null) {
                     throw new NullPointerException("bytes");
                 }
@@ -58,7 +58,7 @@ public abstract class ByteBody  {
         return bytes;
     }
 
-    public abstract byte[] getBytes() throws IOException;
+    public abstract byte[] getContent() throws IOException;
 
     public String fileName() {
         return null;
@@ -85,7 +85,7 @@ public abstract class ByteBody  {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ByteBody that = (ByteBody) o;
+        HttpBody that = (HttpBody) o;
 
         if (!Arrays.equals(bytes(), that.bytes())) return false;
         if (!mimeType.equals(that.mimeType)) return false;

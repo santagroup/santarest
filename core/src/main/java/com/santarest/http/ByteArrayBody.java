@@ -20,7 +20,7 @@ package com.santarest.http;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-public class ByteArrayBody extends ByteBody {
+public class ByteArrayBody extends HttpBody {
     private final byte[] bytes;
 
     /**
@@ -33,7 +33,7 @@ public class ByteArrayBody extends ByteBody {
         this.bytes = bytes;
     }
 
-    public byte[] getBytes() {
+    public byte[] getContent() {
         return bytes;
     }
 }

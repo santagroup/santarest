@@ -25,7 +25,7 @@ import java.io.IOException;
  *
  * @author Bob Lee (bob@squareup.com)
  */
-public class FileBody extends ByteBody {
+public class FileBody extends HttpBody {
     private static final int BUFFER_SIZE = 4096;
 
     private final String mimeType;
@@ -71,7 +71,7 @@ public class FileBody extends ByteBody {
     }
 
     @Override
-    public byte[] getBytes() throws IOException {
+    public byte[] getContent() throws IOException {
         byte[] buffer = new byte[BUFFER_SIZE];
         FileInputStream in = new FileInputStream(file);
         ByteArrayOutputStream out = new ByteArrayOutputStream();

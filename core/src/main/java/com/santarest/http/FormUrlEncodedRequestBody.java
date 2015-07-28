@@ -19,7 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-public final class FormUrlEncodedRequestBody extends ByteBody {
+public final class FormUrlEncodedRequestBody extends HttpBody {
   final ByteArrayOutputStream content = new ByteArrayOutputStream();
 
   /**
@@ -60,7 +60,8 @@ public final class FormUrlEncodedRequestBody extends ByteBody {
     return "application/x-www-form-urlencoded; charset=UTF-8";
   }
 
-  @Override public byte[] getBytes() {
+  @Override
+  public byte[] getContent() {
     return content.toByteArray();
   }
 }
