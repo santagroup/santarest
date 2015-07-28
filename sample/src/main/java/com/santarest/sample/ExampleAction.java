@@ -13,8 +13,8 @@ import com.santarest.annotations.ResponseHeader;
 import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
+import com.santarest.http.ByteBody;
 import com.santarest.http.Header;
-import com.santarest.http.ResponseBody;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +35,7 @@ public class ExampleAction extends BaseExampleAction {
     Object requestHeader;
 
     @Response
-    ResponseBody responseBodys;
+    ByteBody responseBody;
     @Response
     List<Contributor> contributorss;
     @Response
@@ -89,8 +89,8 @@ public class ExampleAction extends BaseExampleAction {
         return contributorss;
     }
 
-    public ResponseBody getResponseBody() {
-        return responseBodys;
+    public ByteBody getResponseBody() {
+        return responseBody;
     }
 
     public Map<String, String> getHeadersMap() {
@@ -113,7 +113,7 @@ public class ExampleAction extends BaseExampleAction {
                 "owner='" + ownerr + '\'' +
                 ", repo='" + repoo + '\'' +
                 ", contributors=" + contributorss +
-                ", responseBody=" + responseBodys +
+                ", responseBody=" + responseBody +
                 ", headersMap=" + headersMaps +
                 ", headers=" + requestHeaders +
                 ", status=" + status +

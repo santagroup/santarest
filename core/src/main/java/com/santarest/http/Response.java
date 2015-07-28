@@ -32,9 +32,9 @@ public final class Response {
     private final int status;
     private final String reason;
     private final List<Header> headers;
-    private final ResponseBody body;
+    private final ByteBody body;
 
-    public Response(String url, int status, String reason, List<Header> headers, ResponseBody body) {
+    public Response(String url, int status, String reason, List<Header> headers, ByteBody body) {
         if (url == null) {
             throw new IllegalArgumentException("url == null");
         }
@@ -94,7 +94,7 @@ public final class Response {
     /**
      * Response body. May be {@code null}.
      */
-    public ResponseBody getBody() {
+    public ByteBody getBody() {
         return body;
     }
 

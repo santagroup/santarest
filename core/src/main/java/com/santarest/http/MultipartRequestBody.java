@@ -24,11 +24,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-public final class MultipartRequestBody implements RequestBody {
+public final class MultipartRequestBody extends ByteBody {
   public static final String DEFAULT_TRANSFER_ENCODING = "binary";
 
   private static final class MimePart {
-    private final RequestBody body;
+    private final ByteBody body;
     private final String name;
     private final String transferEncoding;
     private final boolean isFirst;
@@ -38,7 +38,7 @@ public final class MultipartRequestBody implements RequestBody {
     private byte[] partHeader;
     private boolean isBuilt;
 
-    public MimePart(String name, String transferEncoding, RequestBody body, String boundary,
+    public MimePart(String name, String transferEncoding, ByteBody body, String boundary,
         boolean isFirst) {
       this.name = name;
       this.transferEncoding = transferEncoding;
@@ -82,10 +82,25 @@ public final class MultipartRequestBody implements RequestBody {
   }
 
   MultipartRequestBody(String boundary) {
+    super("multipart/form-data; boundary=" + boundary);
     this.boundary = boundary;
     footer = buildBoundary(boundary, false, true);
     length = footer.length;
   }
+
+  @Override
+  public byte[] getBytes() {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    try {
+      for (MimePart part : mimeParts) {
+        part.writeTo(out);
+      }
+      out.write(footer);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return out.toByteArray();
+    }
 
   List<byte[]> getParts() throws IOException {
     List<byte[]> parts = new ArrayList<byte[]>(mimeParts.size());
@@ -97,11 +112,11 @@ public final class MultipartRequestBody implements RequestBody {
     return parts;
   }
 
-  public void addPart(String name, RequestBody body) {
+  public void addPart(String name, ByteBody body) {
     addPart(name, DEFAULT_TRANSFER_ENCODING, body);
   }
 
-  public void addPart(String name, String transferEncoding, RequestBody body) {
+  public void addPart(String name, String transferEncoding, ByteBody body) {
     if (name == null) {
       throw new NullPointerException("Part name must not be null.");
     }
@@ -131,19 +146,8 @@ public final class MultipartRequestBody implements RequestBody {
     return null;
   }
 
-  @Override public String mimeType() {
-    return "multipart/form-data; boundary=" + boundary;
-  }
-
   @Override public long length() {
     return length;
-  }
-
-  @Override public void writeTo(OutputStream out) throws IOException {
-    for (MimePart part : mimeParts) {
-      part.writeTo(out);
-    }
-    out.write(footer);
   }
 
   private static byte[] buildBoundary(String boundary, boolean first, boolean last) {
@@ -166,7 +170,7 @@ public final class MultipartRequestBody implements RequestBody {
     }
   }
 
-  private static byte[] buildHeader(String name, String transferEncoding, RequestBody value) {
+  private static byte[] buildHeader(String name, String transferEncoding, ByteBody value) {
     try {
       // Initial size estimate based on always-present strings and conservative value lengths.
       StringBuilder headers = new StringBuilder(128);

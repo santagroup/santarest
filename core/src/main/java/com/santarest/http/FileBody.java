@@ -15,17 +15,17 @@
  */
 package com.santarest.http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * File and its mime type.
  *
  * @author Bob Lee (bob@squareup.com)
  */
-public class FileBody implements RequestBody {
+public class FileBody extends ByteBody {
     private static final int BUFFER_SIZE = 4096;
 
     private final String mimeType;
@@ -37,6 +37,7 @@ public class FileBody implements RequestBody {
      * @throws NullPointerException if file or mimeType is null
      */
     public FileBody(String mimeType, File file) {
+        super(mimeType);
         if (mimeType == null) {
             throw new NullPointerException("mimeType");
         }
@@ -70,9 +71,10 @@ public class FileBody implements RequestBody {
     }
 
     @Override
-    public void writeTo(OutputStream out) throws IOException {
+    public byte[] getBytes() throws IOException {
         byte[] buffer = new byte[BUFFER_SIZE];
         FileInputStream in = new FileInputStream(file);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             int read;
             while ((read = in.read(buffer)) != -1) {
@@ -81,6 +83,7 @@ public class FileBody implements RequestBody {
         } finally {
             in.close();
         }
+        return out.toByteArray();
     }
 
     /**

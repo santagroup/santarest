@@ -17,11 +17,18 @@ package com.santarest.http;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URLEncoder;
 
-public final class FormUrlEncodedRequestBody implements RequestBody {
+public final class FormUrlEncodedRequestBody extends ByteBody {
   final ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+  /**
+   * Constructs a new typed byte array.  Sets mimeType to {@code application/unknown} if absent.
+   *
+   */
+  public FormUrlEncodedRequestBody() {
+    super(null);
+  }
 
   public void addField(String name, String value) {
     if (name == null) {
@@ -53,11 +60,7 @@ public final class FormUrlEncodedRequestBody implements RequestBody {
     return "application/x-www-form-urlencoded; charset=UTF-8";
   }
 
-  @Override public long length() {
-    return content.size();
-  }
-
-  @Override public void writeTo(OutputStream out) throws IOException {
-    out.write(content.toByteArray());
+  @Override public byte[] getBytes() {
+    return content.toByteArray();
   }
 }

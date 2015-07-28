@@ -16,9 +16,9 @@
 package com.santarest.client;
 
 import com.santarest.http.ByteArrayBody;
+import com.santarest.http.ByteBody;
 import com.santarest.http.Header;
 import com.santarest.http.Request;
-import com.santarest.http.RequestBody;
 import com.santarest.http.Response;
 
 import org.apache.http.HttpEntity;
@@ -160,12 +160,12 @@ public class ApacheClient implements com.santarest.client.HttpClient {
     }
 
     /**
-     * Container class for passing an entire {@link RequestBody} as an {@link HttpEntity}.
+     * Container class for passing an entire {@link ByteBody} as an {@link HttpEntity}.
      */
     static class TypedOutputEntity extends AbstractHttpEntity {
-        final RequestBody requestBody;
+        final ByteBody requestBody;
 
-        TypedOutputEntity(RequestBody requestBody) {
+        TypedOutputEntity(ByteBody requestBody) {
             this.requestBody = requestBody;
             setContentType(requestBody.mimeType());
         }
