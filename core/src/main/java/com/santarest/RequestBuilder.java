@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class RequestBuilder {
+
     private final Converter converter;
     private final String apiUrl;
 

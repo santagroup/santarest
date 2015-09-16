@@ -10,4 +10,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface Response {}
+public @interface Response {
+
+    /**
+     * HTTP status code of sever response.
+     */
+    int status() default 0;/*for all statuses*/
+}

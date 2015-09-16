@@ -24,6 +24,7 @@ import java.util.List;
  * Encapsulates all of the information necessary to make an HTTP request.
  */
 public final class Request {
+
     private final String method;
     private final String url;
     private final List<Header> headers;

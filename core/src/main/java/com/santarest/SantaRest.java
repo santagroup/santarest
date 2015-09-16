@@ -54,7 +54,7 @@ public class SantaRest {
     }
 
     /**
-     * Request will be performed in executing thread
+     * Request will be performed in executing thread and return action with filled response fields.
      *
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
@@ -105,6 +105,12 @@ public class SantaRest {
         });
     }
 
+    /**
+     * Subscribe to receiving filled actions after server response. Posting actions to subscriber is realised by ActionPoster
+     *
+     * @param subscriber
+     * @see ActionPoster
+     */
     public void subscribe(Object subscriber) {
         if (actionPoster != null) {
             actionPoster.subscribe(subscriber);
