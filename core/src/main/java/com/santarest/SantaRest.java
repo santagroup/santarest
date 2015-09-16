@@ -69,10 +69,10 @@ public class SantaRest {
         Request request = helper.createRequest(action, builder);
         try {
             Response response = client.execute(request);
+            action = helper.fillResponse(action, response, converter);
             for (ResponseListener interceptor : responseListeners) {
                 interceptor.onResponseReceived(action, request, response);
             }
-            action = helper.fillResponse(action, response, converter);
         } catch (Exception error) {
             action = helper.fillError(action, error);
         }
