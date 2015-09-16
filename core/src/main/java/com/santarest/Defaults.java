@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.santarest.callback.ActionPoster;
@@ -15,6 +16,7 @@ import com.santarest.client.OkClient;
 import com.santarest.client.UrlConnectionClient;
 import com.santarest.converter.Converter;
 import com.santarest.converter.GsonConverter;
+import com.santarest.utils.Logger;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -27,9 +29,10 @@ import static java.lang.Thread.MIN_PRIORITY;
  */
 class Defaults {
 
-    static final String THREAD_PREFIX = "Saltar-";
-    static final String IDLE_THREAD_NAME = THREAD_PREFIX + "Idle";
+    private static final String LOG_TAG = "SantaRest";
 
+    static final String THREAD_PREFIX = LOG_TAG + "-";
+    static final String IDLE_THREAD_NAME = THREAD_PREFIX + "Idle";
 
     private enum Platform {
         ANDROID, BASE
@@ -157,5 +160,40 @@ class Defaults {
         return false;
     }
 
+    static Logger getLogger() {
+        if (isPlatform(Platform.ANDROID)) {
+            return new Logger() {
+                @Override
+                public void log(String message, String... args) {
+                    Log.d(LOG_TAG, String.format(message, args));
+                }
+
+                @Override
+                public void error(String message, String... args) {
+                    Log.e(LOG_TAG, String.format(message, args));
+                }
+            };
+        } else {
+            return new Logger() {
+
+                private String formatMessage(String message, String... args) {
+                    StringBuilder sb = new StringBuilder(LOG_TAG);
+                    sb.append(": ");
+                    sb.append(String.format(message, args));
+                    return sb.toString();
+                }
+
+                @Override
+                public void log(String message, String... args) {
+                    System.out.println(formatMessage(message, args));
+                }
+
+                @Override
+                public void error(String message, String... args) {
+                    System.err.println(formatMessage(message, args));
+                }
+            };
+        }
+    }
 
 }

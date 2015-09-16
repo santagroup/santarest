@@ -7,6 +7,7 @@ import com.santarest.client.HttpClient;
 import com.santarest.converter.Converter;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
+import com.santarest.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ public class SantaRest {
     private final List<ResponseListener> responseListeners;
     private final Converter converter;
     private final ActionPoster actionPoster;
+    private final Logger logger;
 
     private final Map<Class, ActionHelper> actionHelperCache = new HashMap<Class, ActionHelper>();
     private ActionHelperFactory actionHelperFactory;
@@ -40,6 +42,7 @@ public class SantaRest {
         this.responseListeners = builder.responseListeners;
         this.converter = builder.converter;
         this.actionPoster = builder.actionPoster;
+        this.logger = Defaults.getLogger();
         loadActionHelperFactory();
     }
 
@@ -68,12 +71,17 @@ public class SantaRest {
         requestInterceptor.intercept(builder);
         Request request = helper.createRequest(action, builder);
         try {
+            String nameActionForlog = action.getClass().getSimpleName();
+            logger.log("Start executing request %s", nameActionForlog);
             Response response = client.execute(request);
+            logger.log("Received response of %s", nameActionForlog);
             action = helper.fillResponse(action, response, converter);
             for (ResponseListener interceptor : responseListeners) {
                 interceptor.onResponseReceived(action, request, response);
             }
+            logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
         } catch (Exception error) {
+            logger.error("Failed action %s executing: %s", action.getClass().getSimpleName(), error.getMessage());
             action = helper.fillError(action, error);
         }
         return action;
