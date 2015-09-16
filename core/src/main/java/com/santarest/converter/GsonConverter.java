@@ -14,7 +14,6 @@ import java.lang.reflect.Type;
 /**
  * A {@link Converter} which uses GSON for serialization and deserialization of entities.
  *
- * @author Jake Wharton (jw@squareup.com)
  */
 public class GsonConverter implements Converter {
     private final Gson gson;

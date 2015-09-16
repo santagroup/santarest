@@ -133,7 +133,7 @@ class Defaults {
         return null;
     }
 
-    public static SantaRest.RequestInterceptor getDefaultRequestInterceptor(){
+    public static SantaRest.RequestInterceptor getDefaultRequestInterceptor() {
         return new SantaRest.RequestInterceptor() {
             @Override
             public void intercept(RequestBuilder request) {

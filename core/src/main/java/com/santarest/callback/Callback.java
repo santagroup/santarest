@@ -1,4 +1,3 @@
-
 package com.santarest.callback;
 
 public interface Callback<A> {

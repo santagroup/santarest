@@ -9,16 +9,11 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
-/**
- * Byte array and its mime type.
- */
 public abstract class HttpBody {
+
     private final String mimeType;
     private byte[] bytes;
 
-    /**
-     * Constructs a new typed byte array.  Sets mimeType to {@code application/unknown} if absent.
-     */
     public HttpBody(String mimeType) {
         if (mimeType == null) {
             mimeType = "application/unknown";

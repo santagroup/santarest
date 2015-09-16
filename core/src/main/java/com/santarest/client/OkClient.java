@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Retrofit client that uses OkHttp for communication.
+ * SantaRest client that uses OkHttp.
  */
 public class OkClient extends UrlConnectionClient {
     private static OkHttpClient generateDefaultOkHttp() {
