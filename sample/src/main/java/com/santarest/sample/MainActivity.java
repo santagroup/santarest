@@ -55,7 +55,6 @@ public class MainActivity extends ActionBarActivity {
                 .addResponseInterceptors(new SantaRest.ResponseListener() {
                     @Override
                     public void onResponseReceived(Object action, Request request, Response response) {
-                        System.out.println(request);
                         System.out.println(response);
                     }
 
@@ -65,7 +64,7 @@ public class MainActivity extends ActionBarActivity {
         String path = insertImage(getContentResolver(), bm, "test.jpg", "test.jpg");
         File file = new File(getRealPathFromURI(Uri.parse(path)));
         uploadFileServer.sendAction(new UploadFileAction(file));
-        githubRest.sendAction(new ExampleAction("square", "retrofit"));
+        githubRest.sendAction(new ExampleAction("square", "otto"));
     }
 
     private String getRealPathFromURI(Uri contentURI) {
