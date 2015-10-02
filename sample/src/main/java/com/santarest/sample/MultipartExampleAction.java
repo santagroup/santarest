@@ -39,7 +39,7 @@ public class MultipartExampleAction extends BaseExampleAction {
     String stringPart;
     @Part("byte")
     byte[] bytes;
-    @Part("byte")
+    @Part("arrayBody")
     ByteArrayBody arrayBody;
 
     @Response
@@ -79,7 +79,6 @@ public class MultipartExampleAction extends BaseExampleAction {
     public HttpBody getResponseBody() {
         return responseBody;
     }
-
 
     public String getRequestId() {
         return requestId;
