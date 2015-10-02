@@ -62,7 +62,7 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    public <A> A executeAction(A action) {
+    public <A> A runAction(A action) {
         ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
             throw new IllegalArgumentException("Action object should be annotated by " + RestAction.class.getName());
@@ -81,7 +81,10 @@ public class SantaRest {
             }
             logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
         } catch (Exception error) {
-            logger.error("Failed action %s executing: %s", action.getClass().getSimpleName(), error.getMessage());
+            logger.error("Failed action %s executing", action.getClass().getSimpleName());
+            for (StackTraceElement element : error.getStackTrace()) {
+                logger.error("%s", element.toString());
+            }
             action = helper.fillError(action, error);
         }
         return action;
@@ -108,13 +111,14 @@ public class SantaRest {
         executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
             @Override
             protected void doExecuteAction(A action) {
-                executeAction(action);
+                runAction(action);
             }
         });
     }
 
     /**
-     * Subscribe to receiving filled actions after server response. Posting actions to subscriber is realised by ActionPoster
+     * Subscribe to receiving filled actions after server response.
+     * Posting actions to subscriber is realised by ActionPoster
      *
      * @param subscriber
      * @see ActionPoster
@@ -125,6 +129,12 @@ public class SantaRest {
         }
     }
 
+    /**
+     * Should be used for unsubscribing objects, which shouldn't anymore receive events.
+     *
+     * @param subscriber
+     * @see ActionPoster
+     */
     public void unsubscribe(Object subscriber) {
         if (actionPoster != null) {
             actionPoster.unsubscribe(subscriber);
@@ -314,6 +324,8 @@ public class SantaRest {
 
         /**
          * The converter used for serialization and deserialization of objects.
+         *
+         * @see com.santarest.converter.GsonConverter
          */
         public Builder setConverter(Converter converter) {
             if (converter == null) {
@@ -323,6 +335,12 @@ public class SantaRest {
             return this;
         }
 
+        /**
+         * For example action poster wrapper of buses
+         *
+         * @see de.greenrobot.event.EventBus
+         * @see com.squareup.otto.Bus
+         */
         public Builder setActionPoster(ActionPoster actionPoster) {
             if (actionPoster == null) {
                 throw new NullPointerException("ActionPoster may not be null.");

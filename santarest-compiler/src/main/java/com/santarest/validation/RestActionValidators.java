@@ -15,8 +15,14 @@ import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.RestAction.Type;
 import com.santarest.annotations.Status;
+import com.santarest.http.ByteArrayBody;
+import com.santarest.http.FileBody;
+import com.santarest.http.FormUrlEncodedRequestBody;
 import com.santarest.http.Header;
+import com.santarest.http.HttpBody;
+import com.santarest.http.MultipartRequestBody;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,10 +60,11 @@ public class RestActionValidators implements Validator<RestActionClass> {
         validators.add(new AnnotationTypesValidator(RequestHeaders.class, TYPE_MAP_WITH_STRING_KEYS, TYPE_LIST_WITH_HEADER, TYPE_COLLECTION_WITH_HEADER, Header[].class));
         validators.add(new AnnotationTypesValidator(Status.class, Boolean.class, Integer.class, Long.class, String.class, boolean.class, int.class, long.class));
         validators.add(new AnnotationTypesValidator(Error.class, Throwable.class, Exception.class));
+        validators.add(new AnnotationTypesValidator(Part.class, File.class, byte[].class, String.class, HttpBody.class,
+                ByteArrayBody.class, MultipartRequestBody.class, FormUrlEncodedRequestBody.class, FileBody.class));
         validators.add(new AnnotationQuantityValidator(Body.class, 1));
         validators.add(new AnnotationQuantityValidator(Field.class, 1));
         validators.add(new AnnotationQuantityValidator(FieldMap.class, 1));
-        validators.add(new AnnotationQuantityValidator(Part.class, 1));
         validators.add(new AnnotationQuantityValidator(PartMap.class, 1));
 
     }

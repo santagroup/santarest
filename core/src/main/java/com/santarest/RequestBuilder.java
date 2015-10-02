@@ -188,8 +188,8 @@ public final class RequestBuilder {
         }
     }
 
-    public void addPart(String name, HttpBody value, String transferEncoding) {
-        multipartBody.addPart(transferEncoding, value);
+    public void addPart(String name, HttpBody body, String transferEncoding) {
+        multipartBody.addPart(name, transferEncoding, body);
     }
 
     public void setBody(Object value) {

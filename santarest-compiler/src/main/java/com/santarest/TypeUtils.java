@@ -28,6 +28,10 @@ public class TypeUtils {
         return TypeName.get(element.asType()).equals(TypeName.get(type));
     }
 
+    public static boolean isPrimitive(Element element) {
+        return TypeName.get(element.asType()).isPrimitive();
+    }
+
     private static boolean isGenericsEquals(List<Type> generics, List<String> elementGenerics) {
         if (generics.size() != elementGenerics.size()) {
             return false;

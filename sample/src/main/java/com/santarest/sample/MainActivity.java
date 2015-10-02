@@ -50,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         santaRest.subscribe(this);
-        santaRest.sendAction(new ExampleAction("square", "retrofit"));
+        santaRest.runAction(new ExampleAction("square", "retrofit"));
     }
 
     @Override

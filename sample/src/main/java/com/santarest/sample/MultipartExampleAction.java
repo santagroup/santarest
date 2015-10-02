@@ -1,7 +1,7 @@
 package com.santarest.sample;
 
 import com.santarest.annotations.Error;
-import com.santarest.annotations.FieldMap;
+import com.santarest.annotations.Part;
 import com.santarest.annotations.Path;
 import com.santarest.annotations.Query;
 import com.santarest.annotations.QueryMap;
@@ -12,17 +12,19 @@ import com.santarest.annotations.ResponseHeader;
 import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
+import com.santarest.http.ByteArrayBody;
 import com.santarest.http.Header;
 import com.santarest.http.HttpBody;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 @RestAction(value = "/repos/{owner}/{repo}/contributors",
-        type = RestAction.Type.FORM_URL_ENCODED,
-        method = RestAction.Method.GET)
-public class ExampleAction extends BaseExampleAction {
+        type = RestAction.Type.MULTIPART,
+        method = RestAction.Method.POST)
+public class MultipartExampleAction extends BaseExampleAction {
 
     @Path("owner")
     Object ownerr;
@@ -36,6 +38,15 @@ public class ExampleAction extends BaseExampleAction {
     double query3;
     @RequestHeader("repo")
     Object requestHeader;
+
+    @Part("file")
+    File file;
+    @Part("string")
+    String stringPart;
+    @Part("byte")
+    byte[] bytes;
+    @Part("byte")
+    ByteArrayBody arrayBody;
 
     @Response
     HttpBody responseBody;
@@ -69,9 +80,6 @@ public class ExampleAction extends BaseExampleAction {
     @QueryMap
     Map<String, Object> queryMap;
 
-    @FieldMap
-    Map<String, Object> fieldMap;
-
     @Status
     long status;
     @Status
@@ -86,7 +94,7 @@ public class ExampleAction extends BaseExampleAction {
     @Response
     String errorResponse;
 
-    public ExampleAction(String owner, String repo) {
+    public MultipartExampleAction(String owner, String repo) {
         this.ownerr = owner;
         this.repoo = repo;
     }
