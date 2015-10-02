@@ -1,23 +1,16 @@
 package com.santarest.sample;
 
 import com.santarest.annotations.Error;
-import com.santarest.annotations.FieldMap;
 import com.santarest.annotations.Path;
 import com.santarest.annotations.Query;
-import com.santarest.annotations.QueryMap;
 import com.santarest.annotations.RequestHeader;
-import com.santarest.annotations.RequestHeaders;
 import com.santarest.annotations.Response;
 import com.santarest.annotations.ResponseHeader;
-import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
-import com.santarest.http.Header;
 import com.santarest.http.HttpBody;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @RestAction(value = "/repos/{owner}/{repo}/contributors",
         type = RestAction.Type.FORM_URL_ENCODED,
@@ -48,36 +41,15 @@ public class ExampleAction extends BaseExampleAction {
     @Response(401)
     ErrorMessage errorResponse401;
 
-    @ResponseHeaders
-    Map<String, String> headersMaps;
-    @ResponseHeaders
-    Header[] headersMaps2;
-    @ResponseHeaders
-    Collection<Header> headersMaps3;
-    @ResponseHeaders
-    List<Header> headersMaps4;
-
-    @RequestHeaders
-    List<Header> requestHeaders;
-    @RequestHeaders
-    Collection<Header> requestHeaders2;
-    @RequestHeaders
-    Map<String, Object> requestHeaders3;
-    @RequestHeaders
-    Header[] requestHeaders4;
-
-    @QueryMap
-    Map<String, Object> queryMap;
-
-    @FieldMap
-    Map<String, Object> fieldMap;
-
     @Status
     long status;
     @Status
     boolean success;
 
     @ResponseHeader("X-GitHub-Request-Id")
+    String responseId;
+
+    @RequestHeader("X-GitHub-Request-Id")
     String requestId;
 
     @Error
@@ -99,10 +71,6 @@ public class ExampleAction extends BaseExampleAction {
         return responseBody;
     }
 
-    public Map<String, String> getHeadersMap() {
-        return headersMaps;
-    }
-
 
     public String getRequestId() {
         return requestId;
@@ -120,8 +88,6 @@ public class ExampleAction extends BaseExampleAction {
                 ", repo='" + repoo + '\'' +
                 ", contributors=" + contributorss +
                 ", responseBody=" + responseBody +
-                ", headersMap=" + headersMaps +
-                ", headers=" + requestHeaders +
                 ", status=" + status +
                 '}';
     }

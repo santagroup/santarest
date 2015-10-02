@@ -5,15 +5,11 @@ import com.google.gson.reflect.TypeToken;
 import com.santarest.annotations.Body;
 import com.santarest.annotations.Error;
 import com.santarest.annotations.Field;
-import com.santarest.annotations.FieldMap;
 import com.santarest.annotations.Part;
 import com.santarest.annotations.Path;
 import com.santarest.annotations.Query;
-import com.santarest.annotations.QueryMap;
 import com.santarest.annotations.RequestHeader;
-import com.santarest.annotations.RequestHeaders;
 import com.santarest.annotations.ResponseHeader;
-import com.santarest.annotations.ResponseHeaders;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
 import com.santarest.converter.Converter;
@@ -40,10 +36,6 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
-import static com.santarest.CollectionTypes.TYPE_COLLECTION_WITH_HEADER;
-import static com.santarest.CollectionTypes.TYPE_LIST_WITH_HEADER;
-import static com.santarest.CollectionTypes.TYPE_MAP_WITH_STRINGS;
-import static com.santarest.CollectionTypes.TYPE_MAP_WITH_STRING_KEYS;
 import static com.santarest.TypeUtils.equalTypes;
 
 public class HelpersGenerator extends Generator {
@@ -120,16 +112,6 @@ public class HelpersGenerator extends Generator {
             builder.addStatement("requestBuilder.addField($S, action.$L.toString())", annotation.value(), element);
             builder.endControlFlow();
         }
-
-        for (Element element : actionClass.getAnnotatedElements(FieldMap.class)) {
-            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
-                builder.beginControlFlow("if (action.$L != null)", element);
-                builder.beginControlFlow("for ($T fieldName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addField(fieldName, action.$L.get(fieldName).toString())", element);
-                builder.endControlFlow();
-                builder.endControlFlow();
-            }
-        }
     }
 
     private void addRequestQueries(RestActionClass actionClass, MethodSpec.Builder builder) {
@@ -140,17 +122,6 @@ public class HelpersGenerator extends Generator {
             } else {
                 builder.beginControlFlow("if (action.$L != null)", element);
                 builder.addStatement("requestBuilder.addQueryParam($S, action.$L.toString(), $L, $L)", annotation.value(), element, annotation.encodeName(), annotation.encodeValue());
-                builder.endControlFlow();
-            }
-        }
-
-        for (Element element : actionClass.getAnnotatedElements(QueryMap.class)) {
-            QueryMap annotation = element.getAnnotation(QueryMap.class);
-            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
-                builder.beginControlFlow("if (action.$L != null)", element);
-                builder.beginControlFlow("for ($T queryName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addQueryParam(queryName, action.$L.get(queryName).toString(), $L, $L)", element, annotation.encodeNames(), annotation.encodeValues());
-                builder.endControlFlow();
                 builder.endControlFlow();
             }
         }
@@ -169,21 +140,6 @@ public class HelpersGenerator extends Generator {
             builder.beginControlFlow("if (action.$L != null)", element);
             builder.addStatement("requestBuilder.addHeader($S, action.$L.toString())", annotation.value(), element);
             builder.endControlFlow();
-        }
-        for (Element element : actionClass.getAnnotatedElements(RequestHeaders.class)) {
-            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRING_KEYS)) {
-                builder.beginControlFlow("if (action.$L != null)", element);
-                builder.beginControlFlow("for ($T headerName : action.$L.keySet())", String.class, element);
-                builder.addStatement("requestBuilder.addHeader(headerName, action.$L.get(headerName).toString())", element);
-                builder.endControlFlow();
-                builder.endControlFlow();
-            } else if (equalTypes(element, TYPE_LIST_WITH_HEADER) || equalTypes(element, Header[].class) || equalTypes(element, TYPE_COLLECTION_WITH_HEADER)) {
-                builder.beginControlFlow("if (action.$L != null)", element);
-                builder.beginControlFlow("for ($T header : action.$L)", Header.class, element);
-                builder.addStatement("requestBuilder.addHeader(header.getName(), header.getValue())");
-                builder.endControlFlow();
-                builder.endControlFlow();
-            }
         }
     }
 
@@ -271,9 +227,7 @@ public class HelpersGenerator extends Generator {
     }
 
     private void addBasicHeadersMap(RestActionClass actionClass, MethodSpec.Builder builder) {
-        boolean hasResponseHeader = !actionClass.getAnnotatedElements(ResponseHeader.class).isEmpty();
-        boolean hasResponseHeaders = !actionClass.getAnnotatedElements(ResponseHeaders.class).isEmpty();
-        if (!hasResponseHeader && !hasResponseHeaders) {
+        if (actionClass.getAnnotatedElements(ResponseHeader.class).isEmpty()) {
             return;
         }
         builder.addStatement("$T<$T, $T> $L = new $T<$T, $T>()", HashMap.class, String.class, String.class, BASE_HEADERS_MAP, HashMap.class, String.class, String.class);
@@ -287,18 +241,6 @@ public class HelpersGenerator extends Generator {
             ResponseHeader annotation = element.getAnnotation(ResponseHeader.class);
             String fieldAddress = getFieldAddress(actionClass, element);
             builder.addStatement(fieldAddress + " = $L.get($S)", element.toString(), BASE_HEADERS_MAP, annotation.value());
-        }
-
-        for (Element element : actionClass.getAnnotatedElements(ResponseHeaders.class)) {
-            String fieldAddress = getFieldAddress(actionClass, element);
-            if (TypeUtils.equalTypes(element, TYPE_MAP_WITH_STRINGS)) {
-                builder.addStatement(fieldAddress + " = $L", element, BASE_HEADERS_MAP);
-            } else if (equalTypes(element, TYPE_LIST_WITH_HEADER) || equalTypes(element, TYPE_COLLECTION_WITH_HEADER)) {
-                builder.addStatement(fieldAddress + " = response.getHeaders()", element);
-            } else if (equalTypes(element, Header[].class)) {
-                builder.addStatement(fieldAddress + " = new $T[response.getHeaders().size()]", element, Header.class);
-                builder.addStatement(fieldAddress + " = response.getHeaders().toArray(action.$L)", element, element);
-            }
         }
     }
 
