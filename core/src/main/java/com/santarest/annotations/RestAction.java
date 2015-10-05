@@ -8,7 +8,10 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Created by dirong on 6/18/15.
+ * Annotation for action class. Contains configurations for:
+ * - Request method
+ * - Request type
+ * - The second part of request url
  */
 @Documented
 @Target(TYPE)
@@ -23,7 +26,7 @@ public @interface RestAction {
 
     String[] headers() default {};
 
-    public enum Type {
+    enum Type {
         /**
          * No content-specific logic required.
          */
@@ -38,7 +41,7 @@ public @interface RestAction {
         FORM_URL_ENCODED
     }
 
-    public enum Method {
+    enum Method {
         GET(false), POST(true), PUT(true), DELETE(false), HEAD(false), PATCH(true);
 
         private boolean hasBody;

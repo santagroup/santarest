@@ -10,7 +10,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * Named pair for a form-encoded request.
  * <p/>
- * Values are converted to strings using {@link String#valueOf(Object)} and then form URL encoded.
+ * Values are converted to strings using {@link Object#toString()} and then form URL encoded.
  * {@code null} values are ignored. Passing a {@link java.util.List List} or array will result in a
  * field pair for each non-{@code null} item.
  *

@@ -8,7 +8,9 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Created by dirong on 6/19/15.
+ * Response status code.
+ * Possible types of field:
+ * Boolean.class, Integer.class, Long.class, String.class, boolean.class, int.class, long.class
  */
 @Documented
 @Retention(RUNTIME)
