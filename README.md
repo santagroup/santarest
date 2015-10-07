@@ -24,8 +24,7 @@ Each HTTP request in SantaRest is an individual class which contains all informa
 
 For creating an Action you should write a class with annotation `@RestAction`. Example:
 ```java
-
-@RestAction(value = “/demo",
+@RestAction(value = "/demo",
         method = RestAction.Method.GET)
 public class ExampleAction {
 
@@ -38,16 +37,16 @@ In the Action class you can describe information about request using fields with
 * `@Query` for request URL's parameters
 * `@Body` for POST requests's body
 * `@RequestHeader` for request headers
-* `@Field` for request's fields if request type is RestAction.Type.FORM_URL_ENCODED
+* `@Field` for request's fields if request type is `RestAction.Type.FORM_URL_ENCODED`
 * `@Part` for multipart request's parts
 
 To receive information of response you can use special annotations:
 
 * `@Response` for getting response body.
-* `@Status` for getting response status. You can use Integer or Long fields for get status code or use boolean if you want to know request is sent successfully
+* `@Status` for getting response status. You can use `Integer` or `Long` fields for get status code or use boolean if you want to know request is sent successfully
 * `@ResponseHeader` for getting response headers
 
-To send an action you should use method sendAction. After this request will be created, parsed and filled by response. To receive filled actions you should use:
+To send an action you should use method `sendAction`. After this request will be created, parsed and filled by response. To receive filled actions you should use:
 ```java
 santaRest.subscribe(this);
 ```
@@ -57,4 +56,4 @@ But don’t forget to unsubscribe from it:
 santaRest.unsubscribe(this);
 ```
 
-For android we recommend you to use `santaRest.subscribe()` at onResume and `santaRest.unsubscribe(this)` at onPause methods.
+For android we recommend you to use `santaRest.subscribe()` at `onResume` and `santaRest.unsubscribe(this)` at `onPause` methods.
