@@ -20,8 +20,6 @@ santaRest = new SantaRest.Builder()
                 .build();
 ```
 
-
-
 Each HTTP request in SantaRest is an individual class which contains all information about the request and response. We call it as Action.
 
 
