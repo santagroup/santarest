@@ -5,6 +5,7 @@ Durable library for easily HTTP requests executing with the help of EventBus for
 ### What's this for? ###
 
 SantaRest makes profit in such ways:
+
 1. Flexibility and easy using (Thanks [Retrofit](http://square.github.io/retrofit/))
 2. Decoupling networking code from application and receiving responses in different places with EventBus (Thanks [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
 With the help of SantaRest you can create application with network communication but without callbacks and Android activity's life-cycle checking.
