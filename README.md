@@ -20,6 +20,8 @@ santaRest = new SantaRest.Builder()
                 .build();
 ```
 
+
+
 Each HTTP request in SantaRest is an individual class which contains all information about the request and response. We call it as Action.
 
 
@@ -35,17 +37,19 @@ public class ExampleAction {
 ```
 
 In the Action class you can describe information about request using fields with annotations:
-1. [@Path](https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Path.java?at=master) for path value
-2. [@Query]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Query.java?at=master)) for request URL's parameters
-3. [@Body]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Body.java?at=master)) for POST requests's body
-4. [@RequestHeader]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/RequestHeader.java?at=master)) for request headers
-5. [@Field]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Field.java?at=master)) for request's fields if request type is RestAction.Type.FORM_URL_ENCODED
-6. [@Part]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Part.java?at=master)) for multipart request's parts
+
+* [@Path](https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Path.java?at=master) for path value
+* [@Query]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Query.java?at=master)) for request URL's parameters
+* [@Body]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Body.java?at=master)) for POST requests's body
+* [@RequestHeader]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/RequestHeader.java?at=master)) for request headers
+* [@Field]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Field.java?at=master)) for request's fields if request type is RestAction.Type.FORM_URL_ENCODED
+* [@Part]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Part.java?at=master)) for multipart request's parts
 
 To receive information of response you can use special annotations:
-1. [@Response]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Response.java?at=master)) for getting response body.
-2. [@Status]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Status.java?at=master)) for getting response status. You can use Integer or Long fields for get status code or use boolean if you want to know request is sent successfully
-3. [@ResponseHeader]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/ResponseHeader.java?at=master)) for getting response headers
+
+* [@Response]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Response.java?at=master)) for getting response body.
+* [@Status]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/Status.java?at=master)) for getting response status. You can use Integer or Long fields for get status code or use boolean if you want to know request is sent successfully
+* [@ResponseHeader]((https://bitbucket.org/nestandroid/santarest/src/a4d7cc605a14afb4a37519e7587f096922ed4eb1/core/src/main/java/com/santarest/annotations/ResponseHeader.java?at=master)) for getting response headers
 
 To send an action you should use method sendAction. After this request will be created, parsed and filled by response. To receive filled actions you should use:
 ```
