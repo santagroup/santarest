@@ -13,7 +13,7 @@ import com.santarest.http.HttpBody;
 import java.util.List;
 
 @RestAction(value = "/repos/{owner}/{repo}/contributors",
-        type = RestAction.Type.FORM_URL_ENCODED,
+        type = RestAction.Type.SIMPLE,
         method = RestAction.Method.GET)
 public class ExampleAction extends BaseExampleAction {
 
@@ -27,8 +27,6 @@ public class ExampleAction extends BaseExampleAction {
     boolean query2;
     @Query("repo3")
     double query3;
-    @RequestHeader("repo")
-    Object requestHeader;
 
     @Response
     HttpBody responseBody;

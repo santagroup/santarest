@@ -1,6 +1,11 @@
 package com.santarest.sample;
 
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 
 import com.santarest.RequestBuilder;
@@ -8,6 +13,10 @@ import com.santarest.SantaRest;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.otto.Subscribe;
+
+import java.io.File;
+
+import static android.provider.MediaStore.Images.Media.insertImage;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -46,15 +55,29 @@ public class MainActivity extends ActionBarActivity {
                 .addResponseInterceptors(new SantaRest.ResponseListener() {
                     @Override
                     public void onResponseReceived(Object action, Request request, Response response) {
-                        System.out.println(request);
                         System.out.println(response);
                     }
-
                 })
                 .build();
+        Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.abc_ab_share_pack_mtrl_alpha);
+        String path = insertImage(getContentResolver(), bm, "test.jpg", "test.jpg");
+        File file = new File(getRealPathFromURI(Uri.parse(path)));
+        uploadFileServer.sendAction(new UploadFileAction(file));
+        githubRest.sendAction(new ExampleAction("square", "otto"));
+    }
 
-        uploadFileServer.sendAction(new UploadFileAction());
-        githubRest.sendAction(new ExampleAction("square", "retrofit"));
+    private String getRealPathFromURI(Uri contentURI) {
+        String result;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) {
+            result = contentURI.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
+        return result;
     }
 
     @Override

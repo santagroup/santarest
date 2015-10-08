@@ -6,6 +6,8 @@ import com.santarest.annotations.Response;
 import com.santarest.annotations.RestAction;
 import com.santarest.annotations.Status;
 
+import java.io.File;
+
 @RestAction(value = "/post.php", type = RestAction.Type.MULTIPART)
 public class UploadFileAction {
 
@@ -13,12 +15,21 @@ public class UploadFileAction {
     String name = "testDir";
     @Part("name")
     String part = "sdfsadfdsafasfdasdfdasfasdfasdfasfsdfdsfasd";
+    @Part(value = "file", encoding = "multipart/form-data")
+    File file;
+    @Part(value = "file2", encoding = "multipart/form-data")
+    File file2;
+    @Part(value = "file3", encoding = "multipart/form-data")
+    File file3;
     @Response
     String response;
     @Status
     boolean success;
 
-    public UploadFileAction() {
+    public UploadFileAction(File file) {
+        this.file = file;
+        this.file2 = file;
+        this.file3 = file;
     }
 
     public String getResponse() {
