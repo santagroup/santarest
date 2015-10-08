@@ -22,7 +22,7 @@ santaRest = new SantaRest.Builder()
 
 Each HTTP request in SantaRest is an individual class which contains all information about the request and response. Let's call it the Action.
 
-You should create an action class annotated with `@RestAction`. 
+You should annotate action class with `@RestAction`. 
 ```java
 @RestAction(value = "/demo", method = RestAction.Method.GET)
 public class ExampleAction {
