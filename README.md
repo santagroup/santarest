@@ -10,6 +10,7 @@ SantaRest makes profit in such ways:
 2. Decoupling networking code from application and receiving responses in different places, delivered with EventBus (Thanks [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
 
 With the help of SantaRest you can create application with network communication but without callbacks and Android activity's life-cycle checking.
+By relying on compile-time annotation processing to generate code, you can write easy writing-reading code.
 
 ### Usage
 
