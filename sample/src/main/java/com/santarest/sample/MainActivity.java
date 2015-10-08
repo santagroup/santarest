@@ -59,26 +59,10 @@ public class MainActivity extends ActionBarActivity {
                     }
                 })
                 .build();
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.abc_ab_share_pack_mtrl_alpha);
-        String path = insertImage(getContentResolver(), bm, "test.jpg", "test.jpg");
-        File file = new File(getRealPathFromURI(Uri.parse(path)));
-        uploadFileServer.sendAction(new UploadFileAction(file));
+        uploadFileServer.sendAction(new UploadFileAction());
         githubRest.sendAction(new ExampleAction("square", "otto"));
     }
 
-    private String getRealPathFromURI(Uri contentURI) {
-        String result;
-        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
-        if (cursor == null) {
-            result = contentURI.getPath();
-        } else {
-            cursor.moveToFirst();
-            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-            result = cursor.getString(idx);
-            cursor.close();
-        }
-        return result;
-    }
 
     @Override
     protected void onResume() {
