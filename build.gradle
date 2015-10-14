@@ -21,52 +21,58 @@ allprojects {
     }
 }
 
-["santarest", "santarest-compiler"].each { projectName ->
-    project(":$projectName") {
+if (hasProperty("bintray_user")
+        && hasProperty("bintray_apikey")
+        && hasProperty("bintray_gpg")) {
+    ["santarest", "santarest-compiler"].each { projectName ->
+        project(":$projectName") {
 
-        apply plugin: 'com.jfrog.bintray'
-        apply plugin: "maven"
-        apply plugin: 'maven-publish'
+            apply plugin: 'com.jfrog.bintray'
+            apply plugin: "maven"
+            apply plugin: 'maven-publish'
 
-        group = "com.github.santagroup"
-        version = '0.0.1'
+            group = "com.github.santagroup"
+            version = '0.0.1'
 
-        bintray {
-            dryRun = false // Turn off when actually deploying
+            bintray {
+                dryRun = false // Turn off when actually deploying
 
-            user = "$bintray_user"
-            key = "$bintray_apikey"
+                user = "$bintray_user"
+                key = "$bintray_apikey"
 
-            configurations = ['archives']
+                configurations = ['archives']
 
-            pkg {
-                repo = "maven"
-                name = "santarest"
-                userOrg = "santagroup"
-                websiteUrl = "https://github.com/santagroup/santarest"
-                vcsUrl = "https://github.com/santagroup/santarest.git"
-                licenses = ["Apache-2.0"]
-                publish = false
-                publicDownloadNumbers = true
-                version {
-                    gpg {
-                        sign = true
-                        passphrase = "$bintray_gpg"
+                pkg {
+                    repo = "maven"
+                    name = "santarest"
+                    userOrg = "santagroup"
+                    websiteUrl = "https://github.com/santagroup/santarest"
+                    vcsUrl = "https://github.com/santagroup/santarest.git"
+                    licenses = ["Apache-2.0"]
+                    publish = false
+                    publicDownloadNumbers = true
+                    version {
+                        gpg {
+                            sign = true
+                            passphrase = "$bintray_gpg"
+                        }
                     }
                 }
             }
-        }
 
-        afterEvaluate { project ->
-            task sourcesJar(type: Jar, dependsOn: classes) {
-                classifier = 'sources'
-                from sourceSets.main.allSource
-            }
+            afterEvaluate { project ->
+                task sourcesJar(type: Jar, dependsOn: classes) {
+                    classifier = 'sources'
+                    from sourceSets.main.allSource
+                }
 
-            artifacts {
-                archives sourcesJar
+                artifacts {
+                    archives sourcesJar
+                }
             }
         }
     }
 }
+
+
 
