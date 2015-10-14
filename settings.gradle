@@ -1,1 +1,1 @@
-include ':sample', ':core', ':santarest-compiler'
+include ':sample', ':santarest', ':santarest-compiler'

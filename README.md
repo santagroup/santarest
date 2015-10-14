@@ -99,10 +99,12 @@ Like all libraries that generate dynamic code, Proguard might think some classes
 ```
 
 ### Download
-```java
+```groovy
 buildscript {
     repositories {
-        jcenter()
+        maven {
+            url "https://dl.bintray.com/santagroup/maven/"
+        }
     }
     dependencies {
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
@@ -111,6 +113,7 @@ buildscript {
 apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
-    compile project(":core")//TODO: Replace with dependecy from maven
-    apt project(':santarest-compiler')//TODO: Replace with dependecy from maven
+    compile 'com.github.santagroup:santarest:0.0.1'
+    apt 'com.github.santagroup:santarest-compiler:0.0.1'
 }
+```
