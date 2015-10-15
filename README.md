@@ -102,9 +102,7 @@ Like all libraries that generate dynamic code, Proguard might think some classes
 ```groovy
 buildscript {
     repositories {
-        maven {
-            url "https://dl.bintray.com/santagroup/maven/"
-        }
+        jcenter()
     }
     dependencies {
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
