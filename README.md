@@ -1,16 +1,14 @@
 # SantaRest
 
-Flexible library for easily HTTP requests executing. It can be used for Android and Java.
+Flexible library to ease HTTP/HTTPS requests execution. It can be used for Android and Java.
 
-### What's this for?
+### What does SantaRest give?
 
-SantaRest makes profit in such ways:
-
-1. Flexibility and easy using (Thanks [Retrofit](http://square.github.io/retrofit/))
-2. Decoupling networking code from application and receiving responses in different places, delivered with EventBus (Thanks [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
+1. Flexibility and easy usage (thanks to [Retrofit](http://square.github.io/retrofit/))
+2. Networking code and responses handling decoupling (thanks to [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
 
 With the help of SantaRest you can create application with network communication but without callbacks and Android activity's life-cycle checking.
-By relying on compile-time annotation processing to generate code, you can write easy writing-reading code.
+By relying on compile-time annotation processor that generates code for you, you can write clear maintainable code.
 
 ### Usage
 
@@ -21,7 +19,7 @@ santaRest = new SantaRest.Builder()
                 .build();
 ```
 
-Each HTTP request in SantaRest is an individual class which contains all information about the request and response. Let's call it the Action.
+Each HTTP request in SantaRest is an individual class that contains all information about the request and response. Let's call it Action.
 
 You should annotate action class with `@RestAction`. 
 ```java
@@ -31,17 +29,17 @@ public class ExampleAction {
 }
 ```
 
-To process request, you may annotate Action fields with:
+To process request, you can annotate Action fields with:
 * `@Path` for path value
-* `@Query` for request URL's parameters
-* `@Body` for POST requests's body
+* `@Query` for request URL parameters
+* `@Body` for POST request body
 * `@RequestHeader` for request headers
-* `@Field` for request's fields if request type is `RestAction.Type.FORM_URL_ENCODED`
-* `@Part` for multipart request's parts
+* `@Field` for request fields if request type is `RestAction.Type.FORM_URL_ENCODED`
+* `@Part` for multipart request parts
 
 To process response, you may use special annotations:
 * `@Response` for getting response body.
-* `@Status` for getting response status. You can use `Integer`, `Long`, `int` or `long` fields for get status code or use `boolean` if you want to know request was sent successfully
+* `@Status` for getting response status. You can use `Integer`, `Long`, `int` or `long` fields for get status code or use `boolean` if you want to know if request was sent successfully
 * `@ResponseHeader` for getting response headers
 
 ```java
@@ -72,19 +70,19 @@ santaRest.sendAction(new ExampleAction());
 santaRest.runAction(new ExampleAction());
 ```
 
-To receive actions with responses, you should subscribe for event:
+To receive actions with responses, you should subscribe to events:
 ```java
 santaRest.subscribe(this);
 ```
-But don’t forget to unsubscribe from it:
+Don’t forget to unsubscribe by using:
 ```java
 santaRest.unsubscribe(this);
 ```
 
-For android, we recommend you to use `santaRest.subscribe()` at `onResume` and `santaRest.unsubscribe(this)` at `onPause` methods.
+For android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
 
 ### Converters
-It's possible to add converters. By default, santarest works with `GsonConverter`. But you can create your own, just implement `Converter` interface;
+It is possible to add converters. By default, SantaRest works with `GsonConverter`. But you can create your own, just implement `Converter` interface.
 ```java
 SantaRest santaRest = new SantaRest.Builder()
     .setConverter(new GsonConverter(gson))
