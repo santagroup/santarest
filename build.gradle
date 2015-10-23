@@ -8,6 +8,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:1.2.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:2.2.+'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.3.1'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
     }
 }
 
@@ -19,58 +21,58 @@ allprojects {
     }
 }
 
-["core", "santarest-compiler"].each { projectName ->
-    project(":$projectName") {
+if (hasProperty("bintray_user")
+        && hasProperty("bintray_apikey")
+        && hasProperty("bintray_gpg")) {
+    ["santarest", "santarest-compiler"].each { projectName ->
+        project(":$projectName") {
 
-        apply plugin: "maven"
-        apply plugin: 'signing'
+            apply plugin: 'com.jfrog.bintray'
+            apply plugin: "maven"
+            apply plugin: 'maven-publish'
 
-        group = "com.santarest"
-        version = '0.0.1-nightly-15092015'
+            group = "com.github.santagroup"
+            version = '0.0.1'
 
-        signing {
-            required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
-            sign configurations.archives
-        }
+            bintray {
+                dryRun = false // Turn off when actually deploying
 
-        uploadArchives {
-            repositories.mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                String status = getParent().status
-                String contextUrl = "${artifactory_contextUrl}" + "tn-labs"
-                if (status.equals('snapshot')) {
-                    contextUrl = "${artifactory_contextUrl}" + "tn-labs-snapshot"
-                } else if (status.equals("experimental")) {
-                    contextUrl = "${artifactory_contextUrl}" + "tn-labs-experimental"
-                }
-                repository(url: contextUrl) {
-                    authentication(userName: artifactory_user, password: artifactory_password)
-                }
-                if (projectName.equals("core")) {
-                    pom.artifactId = "santarest"
+                user = "$bintray_user"
+                key = "$bintray_apikey"
+
+                configurations = ['archives']
+
+                pkg {
+                    repo = "maven"
+                    name = "santarest"
+                    userOrg = "santagroup"
+                    websiteUrl = "https://github.com/santagroup/santarest"
+                    vcsUrl = "https://github.com/santagroup/santarest.git"
+                    licenses = ["Apache-2.0"]
+                    publish = false
+                    publicDownloadNumbers = true
+                    version {
+                        gpg {
+                            sign = true
+                            passphrase = "$bintray_gpg"
+                        }
+                    }
                 }
             }
-        }
 
-        if (projectName.equals("core")) {
             afterEvaluate { project ->
                 task sourcesJar(type: Jar, dependsOn: classes) {
                     classifier = 'sources'
                     from sourceSets.main.allSource
                 }
 
-                //TODO: uncomment javadoc task, after javadoc will be added
-//                task javadocJar(type: Jar, dependsOn: javadoc) {
-//                    classifier = 'javadoc'
-//                    from javadoc.destinationDir
-//                }
-
                 artifacts {
                     archives sourcesJar
-//                    archives javadocJar
                 }
             }
         }
     }
 }
+
+
 
