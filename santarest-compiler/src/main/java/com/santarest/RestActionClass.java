@@ -68,7 +68,7 @@ public class RestActionClass {
         return typeElement;
     }
 
-    public TypeName getTypeName(){
+    public TypeName getTypeName() {
         return TypeName.get(getTypeElement().asType());
     }
 
@@ -76,8 +76,8 @@ public class RestActionClass {
         return getTypeElement().getSimpleName() + HelpersGenerator.HELPER_SUFFIX;
     }
 
-    public String getName() {
-        return getTypeElement().getSimpleName().toString();
+    public String getFullHelperName() {
+        return getPackageName() + "." + getTypeElement().getSimpleName() + HelpersGenerator.HELPER_SUFFIX;
     }
 
     public String getPackageName() {

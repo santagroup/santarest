@@ -1,11 +1,6 @@
 package com.santarest.sample;
 
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 
 import com.santarest.RequestBuilder;
@@ -13,10 +8,6 @@ import com.santarest.SantaRest;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.otto.Subscribe;
-
-import java.io.File;
-
-import static android.provider.MediaStore.Images.Media.insertImage;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -61,6 +52,7 @@ public class MainActivity extends ActionBarActivity {
                 .build();
         uploadFileServer.sendAction(new UploadFileAction());
         githubRest.sendAction(new ExampleAction("square", "otto"));
+        githubRest.sendAction(new OuterAction.InnerAction());
     }
 
 
