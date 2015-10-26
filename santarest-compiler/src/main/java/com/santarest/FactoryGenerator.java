@@ -29,9 +29,8 @@ public class FactoryGenerator extends Generator {
                 .addParameter(Class.class, "actionClass");
 
         for (RestActionClass actionClass : actionClasses) {
-            Object packageName = actionClass.getPackageName();
-            makeMethodBuilder.beginControlFlow("if(actionClass == $L.$L.class)", packageName, actionClass.getName());
-            makeMethodBuilder.addStatement(" return new $L.$L()", packageName, actionClass.getHelperName());
+            makeMethodBuilder.beginControlFlow("if(actionClass == $L.class)", actionClass.getTypeElement().getQualifiedName());
+            makeMethodBuilder.addStatement(" return new $L()", actionClass.getFullHelperName());
             makeMethodBuilder.endControlFlow();
         }
         makeMethodBuilder.addStatement("return null");
