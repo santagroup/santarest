@@ -68,16 +68,17 @@ public class SantaRest {
             throw new IllegalArgumentException("Action object should be annotated by " + RestAction.class.getName());
         }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
+        builder = helper.fillRequest(builder, action);
         requestInterceptor.intercept(builder);
-        Request request = helper.createRequest(action, builder);
+        Request request = builder.build();
         try {
             String nameActionForlog = action.getClass().getSimpleName();
             logger.log("Start executing request %s", nameActionForlog);
             Response response = client.execute(request);
             logger.log("Received response of %s", nameActionForlog);
-            action = helper.fillResponse(action, response, converter);
-            for (ResponseListener interceptor : responseListeners) {
-                interceptor.onResponseReceived(action, request, response);
+            action = helper.onResponse(action, response, converter);
+            for (ResponseListener listener : responseListeners) {
+                listener.onResponseReceived(action, request, response);
             }
             logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
         } catch (Exception error) {
@@ -85,7 +86,7 @@ public class SantaRest {
             for (StackTraceElement element : error.getStackTrace()) {
                 logger.error("%s", element.toString());
             }
-            action = helper.fillError(action, error);
+            action = helper.onError(action, error);
         }
         return action;
     }
@@ -110,7 +111,7 @@ public class SantaRest {
         CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, callback);
         executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
             @Override
-            protected void doExecuteAction(A action) {
+            protected void doAction(A action) {
                 runAction(action);
             }
         });
@@ -153,11 +154,11 @@ public class SantaRest {
     }
 
     public interface ActionHelper<T> {
-        Request createRequest(T action, RequestBuilder requestBuilder);
+        RequestBuilder fillRequest(RequestBuilder requestBuilder, T action);
 
-        T fillResponse(T action, Response response, Converter converter);
+        T onResponse(T action, Response response, Converter converter);
 
-        T fillError(T action, Throwable error);
+        T onError(T action, Throwable error);
     }
 
     interface ActionHelperFactory {
@@ -232,7 +233,7 @@ public class SantaRest {
         @Override
         public final void run() {
             try {
-                doExecuteAction(action);
+                doAction(action);
                 callbackExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -249,7 +250,7 @@ public class SantaRest {
             }
         }
 
-        protected abstract void doExecuteAction(A action);
+        protected abstract void doAction(A action);
     }
 
 
