@@ -20,13 +20,13 @@ public class MainActivity extends ActionBarActivity {
         setContentView(com.santarest.sample.R.layout.activity_main);
         githubRest = new SantaRest.Builder()
                 .setServerUrl("https://api.github.com")
-                .setRequestInterceptor(new SantaRest.RequestInterceptor() {
+                .addRequestInterceptor(new SantaRest.RequestInterceptor() {
                     @Override
                     public void intercept(RequestBuilder request) {
                         request.addHeader("test", "test");
                     }
                 })
-                .addResponseInterceptors(new SantaRest.ResponseListener() {
+                .addResponseInterceptor(new SantaRest.ResponseListener() {
                     @Override
                     public void onResponseReceived(Object action, Request request, Response response) {
                         System.out.println(request);
@@ -37,13 +37,13 @@ public class MainActivity extends ActionBarActivity {
                 .build();
         uploadFileServer = new SantaRest.Builder()
                 .setServerUrl("http://posttestserver.com")
-                .setRequestInterceptor(new SantaRest.RequestInterceptor() {
+                .addRequestInterceptor(new SantaRest.RequestInterceptor() {
                     @Override
                     public void intercept(RequestBuilder request) {
                         request.addHeader("test", "test");
                     }
                 })
-                .addResponseInterceptors(new SantaRest.ResponseListener() {
+                .addResponseInterceptor(new SantaRest.ResponseListener() {
                     @Override
                     public void onResponseReceived(Object action, Request request, Response response) {
                         System.out.println(response);

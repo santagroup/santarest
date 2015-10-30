@@ -133,15 +133,6 @@ class Defaults {
         return null;
     }
 
-    public static SantaRest.RequestInterceptor getDefaultRequestInterceptor() {
-        return new SantaRest.RequestInterceptor() {
-            @Override
-            public void intercept(RequestBuilder request) {
-                // Do nothing
-            }
-        };
-    }
-
     private static boolean hasClass(String className) {
         boolean has = false;
         try {
