@@ -24,8 +24,8 @@ public class SantaRest {
     private final HttpClient client;
     private final Executor executor;
     private final Executor callbackExecutor;
-    private final RequestInterceptor requestInterceptor;
-    private final List<ResponseListener> responseListeners;
+    private final List<RequestInterceptor> requestInterceptors;
+    private final List<ResponseListener> responseInterceptors;
     private final Converter converter;
     private final ActionPoster actionPoster;
     private final Logger logger;
@@ -38,8 +38,8 @@ public class SantaRest {
         this.client = builder.client;
         this.executor = builder.executor;
         this.callbackExecutor = builder.callbackExecutor;
-        this.requestInterceptor = builder.requestInterceptor;
-        this.responseListeners = builder.responseListeners;
+        this.requestInterceptors = builder.requestInterceptors;
+        this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
         this.actionPoster = builder.actionPoster;
         this.logger = Defaults.getLogger();
@@ -69,7 +69,9 @@ public class SantaRest {
         }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
-        requestInterceptor.intercept(builder);
+        for (RequestInterceptor requestInterceptor : requestInterceptors) {
+            requestInterceptor.intercept(builder);
+        }
         Request request = builder.build();
         try {
             String nameActionForlog = action.getClass().getSimpleName();
@@ -77,7 +79,7 @@ public class SantaRest {
             Response response = client.execute(request);
             logger.log("Received response of %s", nameActionForlog);
             action = helper.onResponse(action, response, converter);
-            for (ResponseListener listener : responseListeners) {
+            for (ResponseListener listener : responseInterceptors) {
                 listener.onResponseReceived(action, request, response);
             }
             logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
@@ -259,8 +261,8 @@ public class SantaRest {
         private HttpClient client;
         private Executor executor;
         private Executor callbackExecutor;
-        private RequestInterceptor requestInterceptor;
-        private List<ResponseListener> responseListeners = new ArrayList<ResponseListener>();
+        private List<RequestInterceptor> requestInterceptors = new ArrayList<RequestInterceptor>();
+        private List<ResponseListener> responseInterceptors = new ArrayList<ResponseListener>();
         private Converter converter;
         private ActionPoster actionPoster;
 
@@ -307,19 +309,19 @@ public class SantaRest {
             return this;
         }
 
-        public Builder setRequestInterceptor(RequestInterceptor requestInterceptor) {
+        public Builder addRequestInterceptor(RequestInterceptor requestInterceptor) {
             if (requestInterceptor == null) {
                 throw new NullPointerException("Request interceptor may not be null.");
             }
-            this.requestInterceptor = requestInterceptor;
+            this.requestInterceptors.add(requestInterceptor);
             return this;
         }
 
-        public Builder addResponseInterceptors(ResponseListener responseListener) {
+        public Builder addResponseInterceptor(ResponseListener responseListener) {
             if (responseListener == null) {
                 throw new NullPointerException("Request interceptor may not be null.");
             }
-            this.responseListeners.add(responseListener);
+            this.responseInterceptors.add(responseListener);
             return this;
         }
 
@@ -376,9 +378,6 @@ public class SantaRest {
             }
             if (actionPoster == null) {
                 actionPoster = Defaults.getDefualtActionPoster();
-            }
-            if (requestInterceptor == null) {
-                requestInterceptor = Defaults.getDefaultRequestInterceptor();
             }
         }
     }
