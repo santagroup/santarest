@@ -97,6 +97,8 @@ Like all libraries that generate dynamic code, Proguard might think some classes
 ```
 
 ### Download
+[ ![Download](https://api.bintray.com/packages/santagroup/maven/santarest/images/download.svg) ](https://bintray.com/santagroup/maven/santarest/_latestVersion)
+
 ```groovy
 buildscript {
     repositories {
