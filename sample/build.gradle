@@ -30,4 +30,5 @@ dependencies {
 //    apt 'com.github.santagroup:santarest-compiler:0.0.1'
     compile project(":santarest")
     apt project(':santarest-compiler')
+    compile'io.reactivex:rxjava:1.0.15'
 }

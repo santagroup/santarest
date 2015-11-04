@@ -1,6 +1,7 @@
 package com.santarest.sample;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 
 import com.santarest.RequestBuilder;
@@ -8,6 +9,11 @@ import com.santarest.SantaRest;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.otto.Subscribe;
+
+import java.util.concurrent.Executor;
+
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -53,6 +59,27 @@ public class MainActivity extends ActionBarActivity {
         uploadFileServer.sendAction(new UploadFileAction());
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
+        githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
+                  .subscribeOn(Schedulers.io())
+                  .observeOn(Schedulers.from(new Executor() {
+                      Handler handler = new Handler();
+
+                      @Override
+                      public void execute(Runnable command) {
+                          handler.post(command);
+                      }
+                  }))
+                  .subscribe(new Action1<ExampleAction>() {
+                      @Override
+                      public void call(ExampleAction exampleAction) {
+                          System.out.println(exampleAction);
+                      }
+                  }, new Action1<Throwable>() {
+                      @Override
+                      public void call(Throwable throwable) {
+                          throwable.printStackTrace();
+                      }
+                  });
     }
 
 

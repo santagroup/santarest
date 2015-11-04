@@ -11,4 +11,5 @@ dependencies {
     provided 'com.google.android:android:+'
     provided 'com.squareup.okhttp:okhttp:+'
     provided 'com.squareup.okhttp:okhttp-urlconnection:+'
+    provided 'io.reactivex:rxjava:+'
 }
