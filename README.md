@@ -111,7 +111,7 @@ buildscript {
 apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
-    compile 'com.github.santagroup:santarest:0.0.1'
-    apt 'com.github.santagroup:santarest-compiler:0.0.1'
+    compile 'com.github.santagroup:santarest:0.0.2'
+    apt 'com.github.santagroup:santarest-compiler:0.0.2'
 }
 ```
