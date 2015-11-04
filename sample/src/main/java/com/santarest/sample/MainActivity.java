@@ -60,6 +60,7 @@ public class MainActivity extends ActionBarActivity {
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
         githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
+                  .subscribeOn(Schedulers.io())
                   .observeOn(Schedulers.from(new Executor() {
                       Handler handler = new Handler();
 

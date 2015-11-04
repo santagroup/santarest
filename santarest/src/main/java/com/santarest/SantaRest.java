@@ -103,8 +103,7 @@ public class SantaRest {
                     protected void doAction(A action) {
                         runAction(action);
                     }
-                })
-                .subscribeOn(Schedulers.from(executor));
+                });
     }
 
     /**
