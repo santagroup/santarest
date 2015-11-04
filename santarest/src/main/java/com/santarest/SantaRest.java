@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import rx.Observable;
+import rx.schedulers.Schedulers;
+
 public class SantaRest {
 
     final static String HELPERS_FACTORY_CLASS_SIMPLE_NAME = "ActionHelperFactoryImpl";
@@ -91,6 +94,17 @@ public class SantaRest {
             action = helper.onError(action, error);
         }
         return action;
+    }
+
+    public <A> Observable<A> createObservable(A action) {
+        return Observable
+                .create(new RXOnSubscribe<A>(action) {
+                    @Override
+                    protected void doAction(A action) {
+                        runAction(action);
+                    }
+                })
+                .subscribeOn(Schedulers.from(executor));
     }
 
     /**
