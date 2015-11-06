@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 public class SantaRest {
 
@@ -55,7 +54,7 @@ public class SantaRest {
                     = (Class<? extends ActionHelperFactory>) Class.forName(HELPERS_FACTORY_CLASS_NAME);
             actionHelperFactory = clazz.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //do nothing. actionHelperFactory will be checked on run action
         }
     }
 
@@ -68,7 +67,7 @@ public class SantaRest {
     public <A> A runAction(A action) {
         ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
-            throw new IllegalArgumentException("Action object should be annotated by " + RestAction.class.getName());
+            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
         }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
@@ -159,7 +158,7 @@ public class SantaRest {
 
     private ActionHelper getActionHelper(Class actionClass) {
         ActionHelper helper = actionHelperCache.get(actionClass);
-        if (helper == null) {
+        if (helper == null && actionHelperFactory != null) {
             synchronized (this) {
                 helper = actionHelperFactory.make(actionClass);
                 actionHelperCache.put(actionClass, helper);
@@ -255,6 +254,8 @@ public class SantaRest {
                         callback.onSuccess(action);
                     }
                 });
+            } catch (SantaRestException e) {
+                throw e;
             } catch (final Exception e) {
                 callbackExecutor.execute(new Runnable() {
                     @Override
@@ -284,7 +285,7 @@ public class SantaRest {
          */
         public Builder setServerUrl(String serverUrl) {
             if (serverUrl == null || serverUrl.trim().length() == 0) {
-                throw new NullPointerException("Endpoint may not be blank.");
+                throw new IllegalArgumentException("Endpoint may not be blank.");
             }
             this.serverUrl = serverUrl;
             return this;
@@ -295,7 +296,7 @@ public class SantaRest {
          */
         public Builder setClient(HttpClient client) {
             if (client == null) {
-                throw new NullPointerException("Client provider may not be null.");
+                throw new IllegalArgumentException("Client provider may not be null.");
             }
             this.client = client;
             return this;
@@ -308,7 +309,7 @@ public class SantaRest {
          */
         public Builder setExecutor(Executor httpExecutor) {
             if (httpExecutor == null) {
-                throw new NullPointerException("HTTP executor may not be null.");
+                throw new IllegalArgumentException("HTTP executor may not be null.");
             }
             this.executor = httpExecutor;
             return this;
@@ -316,7 +317,7 @@ public class SantaRest {
 
         public Builder setCallbackExecutor(Executor callbackExecutor) {
             if (callbackExecutor == null) {
-                throw new NullPointerException("HTTP executor may not be null.");
+                throw new IllegalArgumentException("HTTP executor may not be null.");
             }
             this.callbackExecutor = callbackExecutor;
             return this;
@@ -324,7 +325,7 @@ public class SantaRest {
 
         public Builder addRequestInterceptor(RequestInterceptor requestInterceptor) {
             if (requestInterceptor == null) {
-                throw new NullPointerException("Request interceptor may not be null.");
+                throw new IllegalArgumentException("Request interceptor may not be null.");
             }
             this.requestInterceptors.add(requestInterceptor);
             return this;
@@ -332,7 +333,7 @@ public class SantaRest {
 
         public Builder addResponseInterceptor(ResponseListener responseListener) {
             if (responseListener == null) {
-                throw new NullPointerException("Request interceptor may not be null.");
+                throw new IllegalArgumentException("Request interceptor may not be null.");
             }
             this.responseInterceptors.add(responseListener);
             return this;
@@ -345,7 +346,7 @@ public class SantaRest {
          */
         public Builder setConverter(Converter converter) {
             if (converter == null) {
-                throw new NullPointerException("Converter may not be null.");
+                throw new IllegalArgumentException("Converter may not be null.");
             }
             this.converter = converter;
             return this;
@@ -359,7 +360,7 @@ public class SantaRest {
          */
         public Builder setActionPoster(ActionPoster actionPoster) {
             if (actionPoster == null) {
-                throw new NullPointerException("ActionPoster may not be null.");
+                throw new IllegalArgumentException("ActionPoster may not be null.");
             }
             this.actionPoster = actionPoster;
             return this;
