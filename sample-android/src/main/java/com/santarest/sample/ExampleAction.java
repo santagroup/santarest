@@ -79,14 +79,14 @@ public class ExampleAction extends BaseExampleAction {
         int contributions;
     }
 
-    @Override
-    public String toString() {
-        return "ExampleAction{" +
-                "owner='" + ownerr + '\'' +
-                ", repo='" + repoo + '\'' +
-                ", contributors=" + contributorss +
-                ", responseBody=" + responseBody +
-                ", status=" + status +
-                '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "ExampleAction{" +
+//                "owner='" + ownerr + '\'' +
+//                ", repo='" + repoo + '\'' +
+//                ", contributors=" + contributorss +
+//                ", responseBody=" + responseBody +
+//                ", status=" + status +
+//                '}';
+//    }
 }

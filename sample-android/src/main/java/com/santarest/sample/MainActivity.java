@@ -6,6 +6,7 @@ import android.support.v7.app.ActionBarActivity;
 
 import com.santarest.RequestBuilder;
 import com.santarest.SantaRest;
+import com.santarest.SantaRestExecutor;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.otto.Subscribe;
@@ -35,8 +36,8 @@ public class MainActivity extends ActionBarActivity {
                 .addResponseInterceptor(new SantaRest.ResponseListener() {
                     @Override
                     public void onResponseReceived(Object action, Request request, Response response) {
-                        System.out.println(request);
-                        System.out.println(response);
+//                        System.out.println(request);
+//                        System.out.println(response);
                     }
 
                 })
@@ -56,10 +57,10 @@ public class MainActivity extends ActionBarActivity {
                     }
                 })
                 .build();
-        uploadFileServer.sendAction(new UploadFileAction());
-        githubRest.sendAction(new ExampleAction("square", "otto"));
-        githubRest.sendAction(new OuterAction.InnerAction());
-        githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
+//        uploadFileServer.sendAction(new UploadFileAction());
+//        githubRest.sendAction(new ExampleAction("square", "otto"));
+//        githubRest.sendAction(new OuterAction.InnerAction());
+        githubRest.createObservable(new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"))
                   .subscribeOn(Schedulers.io())
                   .observeOn(Schedulers.from(new Executor() {
                       Handler handler = new Handler();
@@ -72,7 +73,7 @@ public class MainActivity extends ActionBarActivity {
                   .subscribe(new Action1<ExampleAction>() {
                       @Override
                       public void call(ExampleAction exampleAction) {
-                          System.out.println(exampleAction);
+                          System.out.println("subscribed " + exampleAction);
                       }
                   }, new Action1<Throwable>() {
                       @Override
@@ -80,6 +81,28 @@ public class MainActivity extends ActionBarActivity {
                           throwable.printStackTrace();
                       }
                   });
+
+        SantaRestExecutor<ExampleAction> restExecutor = githubRest.createExecutor(new ExampleAction("santagroup", "santarest"));
+        restExecutor.connect().subscribe(new Action1<ExampleAction>() {
+            @Override
+            public void call(ExampleAction exampleAction) {
+                System.out.println(exampleAction);
+            }
+        });
+        restExecutor.connect().subscribe(new Action1<ExampleAction>() {
+            @Override
+            public void call(ExampleAction exampleAction) {
+                System.out.println(exampleAction);
+            }
+        });
+        restExecutor.execute();
+        restExecutor.connectWithCache().subscribe(new Action1<ExampleAction>() {
+            @Override
+            public void call(ExampleAction exampleAction) {
+                System.out.println(exampleAction);
+            }
+        });
+        restExecutor.execute();
     }
 
 
