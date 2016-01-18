@@ -102,28 +102,15 @@ public class SantaRest {
                 .doOnNext(new Action1<A>() {
                     @Override
                     public void call(A a) {
-                        System.out.println("run "+a);
                         runAction(a);
                     }
                 });
-
-//        return Observable
-//                .create(new RXOnSubscribe<A>(actions) {
-//                    @Override
-//                    protected void doAction(A action) {
-//                        runAction(action);
-//                    }
-//                });
     }
 
     public <A> SantaRestExecutor<A> createExecutor(final A... actions) {
         return new SantaRestExecutor<A>(new Func0<Observable<A>>() {
             @Override
             public Observable<A> call() {
-//                Observable<A> observable = Observable.empty();
-//                for (A action : actions) {
-//                    observable.concatWith(createObservable(action));
-//                }
                 return createObservable(actions);
             }
         });
