@@ -37,10 +37,10 @@ final public class SantaRestExecutor<A> {
     }
 
     public void execute() {
-        createInternally().subscribe();
+        createJob().subscribe();
     }
 
-    private Observable<A> createInternally() {
+    public Observable<A> createJob() {
         return Observable.defer(new Func0<Observable<A>>() {
             @Override
             public Observable<A> call() {
