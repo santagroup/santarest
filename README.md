@@ -79,6 +79,8 @@ Don’t forget to unsubscribe by using:
 santaRest.getActionPoster().unsubscribe(this);
 ```
 
+For android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
+
 Also, you can receive actions using method `observeActions`. This method returns `rx.Observable` to subscribe on all actions what will completed.
 
 ```java
@@ -87,8 +89,6 @@ santaRest.observeActions()
                 .filter((action) -> exampleAction.success)
                 .subscribe((action) -> updateUI());
 ```
-
-For android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
 
 ### Converters
 It is possible to add converters. By default, SantaRest works with `GsonConverter`. But you can create your own, just implement `Converter` interface.
