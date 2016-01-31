@@ -7,7 +7,6 @@ import android.os.Process;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.santarest.callback.ActionPoster;
 import com.santarest.callback.EventBusPoster;
 import com.santarest.callback.OttoPoster;
 import com.santarest.client.AndroidApacheClient;

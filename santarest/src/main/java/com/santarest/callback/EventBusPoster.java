@@ -1,11 +1,13 @@
 package com.santarest.callback;
 
+import com.santarest.ActionPoster;
+
 import de.greenrobot.event.EventBus;
 
 /**
  * Created by dirong on 6/23/15.
  */
-public class EventBusPoster implements ActionPoster {
+public class EventBusPoster extends ActionPoster {
 
     private final EventBus eventBus;
 
@@ -18,7 +20,7 @@ public class EventBusPoster implements ActionPoster {
     }
 
     @Override
-    public void post(Object action) {
+    protected void post(Object action) {
         eventBus.post(action);
     }
 

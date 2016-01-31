@@ -12,6 +12,7 @@ import com.squareup.otto.Subscribe;
 
 import java.util.concurrent.Executor;
 
+import rx.Observable;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
@@ -57,44 +58,52 @@ public class MainActivity extends ActionBarActivity {
                 })
                 .build();
         uploadFileServer.sendAction(new UploadFileAction());
+        githubRest.observeActions()
+                .ofType(ExampleAction.class)
+                .subscribe(new Action1<ExampleAction>() {
+                    @Override
+                    public void call(ExampleAction exampleAction) {
+                        System.out.println("exampleAction = [" + exampleAction + "]");
+                    }
+                });
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
         githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
-                  .subscribeOn(Schedulers.io())
-                  .observeOn(Schedulers.from(new Executor() {
-                      Handler handler = new Handler();
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(new Executor() {
+                    Handler handler = new Handler();
 
-                      @Override
-                      public void execute(Runnable command) {
-                          handler.post(command);
-                      }
-                  }))
-                  .subscribe(new Action1<ExampleAction>() {
-                      @Override
-                      public void call(ExampleAction exampleAction) {
-                          System.out.println(exampleAction);
-                      }
-                  }, new Action1<Throwable>() {
-                      @Override
-                      public void call(Throwable throwable) {
-                          throwable.printStackTrace();
-                      }
-                  });
+                    @Override
+                    public void execute(Runnable command) {
+                        handler.post(command);
+                    }
+                }))
+                .subscribe(new Action1<ExampleAction>() {
+                    @Override
+                    public void call(ExampleAction exampleAction) {
+                        System.out.println(exampleAction);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        githubRest.subscribe(this);
-        uploadFileServer.subscribe(this);
+        githubRest.getActionPoster().subscribe(this);
+        uploadFileServer.getActionPoster().subscribe(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        githubRest.unsubscribe(this);
-        uploadFileServer.unsubscribe(this);
+        githubRest.getActionPoster().unsubscribe(this);
+        uploadFileServer.getActionPoster().unsubscribe(this);
     }
 
     @Subscribe
