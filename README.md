@@ -5,7 +5,7 @@ Flexible library to ease HTTP/HTTPS requests execution. It can be used for Andro
 ### What does SantaRest give?
 
 1. Flexibility and easy usage (thanks to [Retrofit](http://square.github.io/retrofit/))
-2. Networking code and responses handling decoupling (thanks to [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
+2. Networking code and responses handling decoupling (thanks to [RXJava](https://github.com/ReactiveX/RxJava), [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
 
 With the help of SantaRest you can create application with network communication but without callbacks and Android activity's life-cycle checking.
 By relying on compile-time annotation processor that generates code for you, you can write clear maintainable code.
