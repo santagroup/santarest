@@ -1,7 +1,6 @@
 package com.santarest;
 
 import com.santarest.annotations.RestAction;
-import com.santarest.callback.ActionPoster;
 import com.santarest.callback.Callback;
 import com.santarest.client.HttpClient;
 import com.santarest.converter.Converter;
@@ -16,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 public class SantaRest {
 
@@ -30,6 +31,7 @@ public class SantaRest {
     private final List<ResponseListener> responseInterceptors;
     private final Converter converter;
     private final ActionPoster actionPoster;
+    private final Subject signal;
     private final Logger logger;
 
     private final Map<Class, ActionHelper> actionHelperCache = new HashMap<Class, ActionHelper>();
@@ -44,6 +46,7 @@ public class SantaRest {
         this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
         this.actionPoster = builder.actionPoster;
+        this.signal = PublishSubject.create();
         this.logger = Defaults.getLogger();
         loadActionHelperFactory();
     }
@@ -122,7 +125,7 @@ public class SantaRest {
      * @see com.santarest.annotations.RestAction
      */
     public <A> void sendAction(final A action, Callback<A> callback) {
-        CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, callback);
+        CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, signal, callback);
         executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
             @Override
             protected void doAction(A action) {
@@ -132,28 +135,20 @@ public class SantaRest {
     }
 
     /**
-     * Subscribe to receiving filled actions after server response.
-     * Posting actions to subscriber is realised by ActionPoster
-     *
-     * @param subscriber
-     * @see ActionPoster
+     * Get ActionPoster for subscribe actions after server response.
+     * @return actionPoster which was set
      */
-    public void subscribe(Object subscriber) {
-        if (actionPoster != null) {
-            actionPoster.subscribe(subscriber);
-        }
+    public ActionPoster getActionPoster() {
+        return actionPoster;
     }
 
+
     /**
-     * Should be used for unsubscribing objects, which shouldn't anymore receive events.
-     *
-     * @param subscriber
-     * @see ActionPoster
+     * Subscribe to receive actions using Observable
+     * @return Observable
      */
-    public void unsubscribe(Object subscriber) {
-        if (actionPoster != null) {
-            actionPoster.unsubscribe(subscriber);
-        }
+    public <A> Observable<A> observeActions() {
+        return signal.asObservable();
     }
 
     private ActionHelper getActionHelper(Class actionClass) {
@@ -205,30 +200,38 @@ public class SantaRest {
     private static class CallbackWrapper<A> implements Callback<A> {
 
         private final ActionPoster actionPoster;
+        private final Subject signal;
         private final Callback<A> callback;
 
-        private CallbackWrapper(ActionPoster actionPoster, Callback<A> callback) {
+        private CallbackWrapper(ActionPoster actionPoster, Subject signal, Callback<A> callback) {
+            this.signal = signal;
             this.actionPoster = actionPoster;
             this.callback = callback;
         }
 
         @Override
-        public void onSuccess(A a) {
-            if (callback != null) {
-                callback.onSuccess(a);
-            }
+        public void onSuccess(A action) {
             if (actionPoster != null) {
-                actionPoster.post(a);
+                actionPoster.post(action);
+            }
+            if (signal != null) {
+                signal.onNext(action);
+            }
+            if (callback != null) {
+                callback.onSuccess(action);
             }
         }
 
         @Override
         public void onFail(A action, Exception error) {
-            if (callback != null) {
-                callback.onFail(action, error);
-            }
             if (actionPoster != null) {
                 actionPoster.post(action);
+            }
+            if (signal != null) {
+                signal.onNext(action);
+            }
+            if (callback != null) {
+                callback.onFail(action, error);
             }
         }
     }
