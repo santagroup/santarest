@@ -72,11 +72,20 @@ santaRest.runAction(new ExampleAction());
 
 To receive actions with responses, you should subscribe to events:
 ```java
-santaRest.subscribe(this);
+santaRest.getActionPoster().subscribe(this);
 ```
 Don’t forget to unsubscribe by using:
 ```java
-santaRest.unsubscribe(this);
+santaRest.getActionPoster().unsubscribe(this);
+```
+
+Also, you can receive actions using method `observeActions`. This method returns `rx.Observable` to subscribe on all actions what will completed.
+
+```java
+santaRest.observeActions()
+                .ofType(ExampleAction.class)
+                .filter((action) -> exampleAction.success)
+                .subscribe((action) -> updateUI());
 ```
 
 For android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
