@@ -5,7 +5,7 @@ Flexible library to ease HTTP/HTTPS requests execution. It can be used for both 
 ### What does SantaRest give?
 
 1. Flexibility and easy usage (thanks to [Retrofit](http://square.github.io/retrofit/))
-2. Networking code and responses handling decoupling (thanks to [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
+2. Networking code and responses handling decoupling (thanks to [RXJava](https://github.com/ReactiveX/RxJava), [Otto](http://square.github.io/otto/) and [EventBus](https://github.com/greenrobot/EventBus))
 
 With the help of SantaRest you can create application with network communication but without callbacks and Android activity's life-cycle checking.
 By relying on compile-time annotation processor that generates code for you, you can write clear maintainable code.
@@ -19,7 +19,7 @@ santaRest = new SantaRest.Builder()
                 .build();
 ```
 
-Each HTTP request in SantaRest is an individual class that contains all information about the request and response. Let's call it Action.
+Each HTTP request in SantaRest is an individual class that contains all information about the request and response. Let's call it as Action.
 
 You should annotate action class with `@RestAction`. 
 ```java
@@ -29,7 +29,7 @@ public class ExampleAction {
 }
 ```
 
-To process request, you can annotate Action fields with:
+To configure request, you can annotate Action fields with:
 * `@Path` for path value
 * `@Query` for request URL parameters
 * `@Body` for POST request body
@@ -39,7 +39,7 @@ To process request, you can annotate Action fields with:
 
 To process response, you may use special annotations:
 * `@Response` for getting response body.
-* `@Status` for getting response status. You can use `Integer`, `Long`, `int` or `long` fields for get status code or use `boolean` if you want to know if request was sent successfully
+* `@Status` for getting response status. You can use `Integer`, `Long`, `int` or `long` fields to get status code or use `boolean` if you want to know if request was sent successfully
 * `@ResponseHeader` for getting response headers
 
 ```java
@@ -64,7 +64,7 @@ public class ExampleAction {
 }
 ```
 
-To send actions asynchronously, you should use method `sendAction` or `runAction` for synchronous calls.
+To send actions asynchronously, you should use method `sendAction`. For synchronous calls use `runAction`.
 ```java
 santaRest.sendAction(new ExampleAction());
 santaRest.runAction(new ExampleAction());
@@ -72,17 +72,26 @@ santaRest.runAction(new ExampleAction());
 
 To receive actions with responses, you should subscribe to events:
 ```java
-santaRest.subscribe(this);
+santaRest.getActionPoster().subscribe(this);
 ```
 Don’t forget to unsubscribe by using:
 ```java
-santaRest.unsubscribe(this);
+santaRest.getActionPoster().unsubscribe(this);
 ```
 
-For android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
+For Android, we recommend you to use `santaRest.subscribe()` and `santaRest.unsubscribe(this)` in `onResume` and `onPause` lifecycle callbacks.
+
+Also, you can receive actions using method `observeActions`. This method returns `rx.Observable` to subscribe on all actions what will completed.
+
+```java
+santaRest.observeActions()
+                .ofType(ExampleAction.class)
+                .filter((action) -> exampleAction.success)
+                .subscribe((action) -> updateUI());
+```
 
 ### Converters
-It is possible to add converters. By default, SantaRest works with `GsonConverter`. But you can create your own, just implement `Converter` interface.
+It is possible to add converters. By default, SantaRest works with `GsonConverter`. But you can create your own. Just implement `Converter` interface.
 ```java
 SantaRest santaRest = new SantaRest.Builder()
     .setConverter(new GsonConverter(gson))
@@ -90,7 +99,7 @@ SantaRest santaRest = new SantaRest.Builder()
 ```
 
 ### Proguard
-Like all libraries that generate dynamic code, Proguard might think some classes are unused and remove them. To prevent this, the following lines can be added to your proguard config file.
+Like in cases with all libraries that generate dynamic code, Proguard might think some classes are unused and removes them. To prevent this, the following lines should be added to your proguard config file.
 
 ```java
 -keep class **$$ActionHelperFactoryImpl { *; }

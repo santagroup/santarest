@@ -1,1 +1,1 @@
-include ':sample', ':santarest', ':santarest-compiler'
+include ':sample-android', ':santarest', ':santarest-compiler', ':sample-jar'

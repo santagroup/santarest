@@ -1,29 +1,25 @@
 package com.santarest.sample;
 
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
-
 import com.santarest.RequestBuilder;
 import com.santarest.SantaRest;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.squareup.otto.Subscribe;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends ActionBarActivity {
+/**
+ * Created by vladla on 11/13/15.
+ */
+public class SamplesRunner {
 
     private SantaRest githubRest;
     private SantaRest uploadFileServer;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(com.santarest.sample.R.layout.activity_main);
+    public SamplesRunner() {
         githubRest = new SantaRest.Builder()
                 .setServerUrl("https://api.github.com")
                 .addRequestInterceptor(new SantaRest.RequestInterceptor() {
@@ -56,47 +52,39 @@ public class MainActivity extends ActionBarActivity {
                     }
                 })
                 .build();
+    }
+
+    public void runTests() {
         uploadFileServer.sendAction(new UploadFileAction());
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
         githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
-                  .subscribeOn(Schedulers.io())
-                  .observeOn(Schedulers.from(new Executor() {
-                      Handler handler = new Handler();
-
-                      @Override
-                      public void execute(Runnable command) {
-                          handler.post(command);
-                      }
-                  }))
-                  .subscribe(new Action1<ExampleAction>() {
-                      @Override
-                      public void call(ExampleAction exampleAction) {
-                          System.out.println(exampleAction);
-                      }
-                  }, new Action1<Throwable>() {
-                      @Override
-                      public void call(Throwable throwable) {
-                          throwable.printStackTrace();
-                      }
-                  });
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
+                .subscribe(new Action1<ExampleAction>() {
+                    @Override
+                    public void call(ExampleAction exampleAction) {
+                        System.out.println(exampleAction);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
+    public void registerEvents() {
         githubRest.subscribe(this);
         uploadFileServer.subscribe(this);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    public void unregisterEvents() {
         githubRest.unsubscribe(this);
         uploadFileServer.unsubscribe(this);
     }
 
+    @SuppressWarnings("unused")
     @Subscribe
     public void onExampleAction(ExampleAction action) {
         System.out.println(action);
@@ -104,10 +92,12 @@ public class MainActivity extends ActionBarActivity {
         System.out.println(action.isSuccess());
     }
 
+    @SuppressWarnings("unused")
     @Subscribe
     public void onUploadFileAction(UploadFileAction action) {
         System.out.println(action);
         System.out.println(action.success);
         System.out.println("response = " + action.getResponse());
     }
+
 }
