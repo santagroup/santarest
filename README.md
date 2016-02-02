@@ -1,6 +1,6 @@
 # SantaRest
 
-Flexible library to ease HTTP/HTTPS requests execution. It can be used both for Android and Java.
+Flexible library to ease HTTP/HTTPS requests execution. It can be used for both Android and Java.
 
 ### What does SantaRest give?
 
