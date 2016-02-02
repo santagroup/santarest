@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -26,8 +25,6 @@ public class SantaRest {
 
     private final String serverUrl;
     private final HttpClient client;
-    private final Executor executor;
-    private final Executor callbackExecutor;
     private final List<RequestInterceptor> requestInterceptors;
     private final List<ResponseListener> responseInterceptors;
     private final Converter converter;
@@ -39,8 +36,6 @@ public class SantaRest {
     private SantaRest(Builder builder) {
         this.serverUrl = builder.serverUrl;
         this.client = builder.client;
-        this.executor = builder.executor;
-        this.callbackExecutor = builder.callbackExecutor;
         this.requestInterceptors = builder.requestInterceptors;
         this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
@@ -131,8 +126,8 @@ public class SantaRest {
                 }
             } catch (final Exception e) {
                 Exceptions.throwIfFatal(e);
-                if(e instanceof SantaRestException){
-                    throw (SantaRestException)e;
+                if (e instanceof SantaRestException) {
+                    throw (SantaRestException) e;
                 }
                 if (!subscriber.isUnsubscribed()) {
                     subscriber.onError(e);
@@ -194,8 +189,6 @@ public class SantaRest {
     public static class Builder {
         private String serverUrl;
         private HttpClient client;
-        private Executor executor;
-        private Executor callbackExecutor;
         private List<RequestInterceptor> requestInterceptors = new ArrayList<RequestInterceptor>();
         private List<ResponseListener> responseInterceptors = new ArrayList<ResponseListener>();
         private Converter converter;
@@ -219,27 +212,6 @@ public class SantaRest {
                 throw new IllegalArgumentException("Client provider may not be null.");
             }
             this.client = client;
-            return this;
-        }
-
-        /**
-         * Executors used for asynchronous HTTP client downloads and callbacks.
-         *
-         * @param httpExecutor Executor on which HTTP client calls will be made.
-         */
-        public Builder setExecutor(Executor httpExecutor) {
-            if (httpExecutor == null) {
-                throw new IllegalArgumentException("HTTP executor may not be null.");
-            }
-            this.executor = httpExecutor;
-            return this;
-        }
-
-        public Builder setCallbackExecutor(Executor callbackExecutor) {
-            if (callbackExecutor == null) {
-                throw new IllegalArgumentException("HTTP executor may not be null.");
-            }
-            this.callbackExecutor = callbackExecutor;
             return this;
         }
 

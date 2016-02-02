@@ -38,13 +38,13 @@ final public class SantaRestExecutor<A> {
 
     public Observable<A> observeActions(){
         return observe()
-                .compose(new StateToValue<A>());
+                .compose(new StateToAction<A>());
 
     }
 
     public Observable<A> observeActionsWithReplay(){
         return observeWithReplay()
-                .compose(new StateToValue<A>());
+                .compose(new StateToAction<A>());
     }
 
     public void clearReplays() {

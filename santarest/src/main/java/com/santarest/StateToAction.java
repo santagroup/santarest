@@ -3,7 +3,7 @@ package com.santarest;
 import rx.Observable;
 import rx.functions.Func1;
 
-class StateToValue<A> implements Observable.Transformer<ActionState<A>, A> {
+class StateToAction<A> implements Observable.Transformer<ActionState<A>, A> {
     @Override
     public Observable<A> call(Observable<ActionState<A>> jobObservable) {
         return jobObservable.flatMap(new Func1<ActionState<A>, Observable<A>>() {
