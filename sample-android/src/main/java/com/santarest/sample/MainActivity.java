@@ -41,7 +41,7 @@ public class MainActivity extends ActionBarActivity {
 
                 })
                 .build();
-        githubRest.createActionObservable(new ExampleAction("santagroup", "santarest"))
+        githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
                   .subscribeOn(Schedulers.io())
                   .observeOn(Schedulers.from(new Executor() {
                       Handler handler = new Handler();
@@ -64,20 +64,20 @@ public class MainActivity extends ActionBarActivity {
                   });
 
         SantaRestExecutor<ExampleAction> restExecutor = githubRest.createExecutor(new ExampleAction("santagroup", "santarest"));
-        restExecutor.connect().subscribe(new Action1<ExampleAction>() {
+        restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {
                 System.out.println(exampleAction);
             }
         });
-        restExecutor.connect().subscribe(new Action1<ExampleAction>() {
+        restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {
                 System.out.println(exampleAction);
             }
         });
         restExecutor.execute();
-        restExecutor.connectWithCache().subscribe(new Action1<ExampleAction>() {
+        restExecutor.observeActionsWithReplay().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {
                 System.out.println(exampleAction);

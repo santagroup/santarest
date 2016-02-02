@@ -17,6 +17,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.Exceptions;
 import rx.functions.Func0;
+import rx.functions.Func1;
 
 public class SantaRest {
 
@@ -63,7 +64,11 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    public <A> A doAction(A action, ActionHelper<A> helper) {
+    private <A> A runAction(A action) {
+        final ActionHelper<A> helper = getActionHelper(action.getClass());
+        if (helper == null) {
+            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
+        }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
         for (RequestInterceptor requestInterceptor : requestInterceptors) {
@@ -90,26 +95,21 @@ public class SantaRest {
         return action;
     }
 
-    public <A> Observable<A> createActionObservable(final A action) {
-        final ActionHelper<A> helper = getActionHelper(action.getClass());
-        if (helper == null) {
-            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
-        }
+    public <A> Observable<A> createObservable(final A action) {
         return Observable
                 .create(new CallOnSubscribe<A>(new Func0<A>() {
                     @Override
                     public A call() {
-                        return doAction(action, helper);
+                        return runAction(action);
                     }
                 }));
     }
 
-    public <A> SantaRestExecutor<A> createExecutor(A action) {
-        final Observable<A> observable = createActionObservable(action);
-        return new SantaRestExecutor<A>(new Func0<Observable<A>>() {
+    public <A> SantaRestExecutor<A> createExecutor(final A action) {
+        return new SantaRestExecutor<A>(action, new Func1<A, Observable<A>>() {
             @Override
-            public Observable<A> call() {
-                return observable;
+            public Observable<A> call(A action) {
+                return createObservable(action);
             }
         });
     }
@@ -131,6 +131,9 @@ public class SantaRest {
                 }
             } catch (final Exception e) {
                 Exceptions.throwIfFatal(e);
+                if(e instanceof SantaRestException){
+                    throw (SantaRestException)e;
+                }
                 if (!subscriber.isUnsubscribed()) {
                     subscriber.onError(e);
                 }
