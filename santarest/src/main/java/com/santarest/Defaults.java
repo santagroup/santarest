@@ -7,9 +7,6 @@ import android.os.Process;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.santarest.callback.ActionPoster;
-import com.santarest.callback.EventBusPoster;
-import com.santarest.callback.OttoPoster;
 import com.santarest.client.AndroidApacheClient;
 import com.santarest.client.HttpClient;
 import com.santarest.client.OkClient;
@@ -119,18 +116,6 @@ class Defaults {
             return new MainThreadExecutor();
         }
         return new SynchronousExecutor();
-    }
-
-    public static ActionPoster getDefualtActionPoster() {
-        if (isPlatform(Platform.ANDROID)) {
-            if (hasClass("de.greenrobot.event.EventBus")) {
-                return new EventBusPoster();
-            }
-            if (hasClass("com.squareup.otto.Bus")) {
-                return new OttoPoster();
-            }
-        }
-        return null;
     }
 
     private static boolean hasClass(String className) {

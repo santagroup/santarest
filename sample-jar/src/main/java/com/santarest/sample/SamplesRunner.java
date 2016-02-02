@@ -58,7 +58,7 @@ public class SamplesRunner {
         uploadFileServer.sendAction(new UploadFileAction());
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
-        githubRest.createObservable(new ExampleAction("santagroup", "santarest"))
+        githubRest.createActionObservable(new ExampleAction("santagroup", "santarest"))
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe(new Action1<ExampleAction>() {

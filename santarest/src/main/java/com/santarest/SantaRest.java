@@ -1,8 +1,6 @@
 package com.santarest;
 
 import com.santarest.annotations.RestAction;
-import com.santarest.callback.ActionPoster;
-import com.santarest.callback.Callback;
 import com.santarest.client.HttpClient;
 import com.santarest.converter.Converter;
 import com.santarest.http.Request;
@@ -16,7 +14,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import rx.Observable;
-import rx.functions.Action1;
+import rx.Subscriber;
+import rx.exceptions.Exceptions;
 import rx.functions.Func0;
 
 public class SantaRest {
@@ -31,7 +30,6 @@ public class SantaRest {
     private final List<RequestInterceptor> requestInterceptors;
     private final List<ResponseListener> responseInterceptors;
     private final Converter converter;
-    private final ActionPoster actionPoster;
     private final Logger logger;
 
     private final Map<Class, ActionHelper> actionHelperCache = new HashMap<Class, ActionHelper>();
@@ -45,7 +43,6 @@ public class SantaRest {
         this.requestInterceptors = builder.requestInterceptors;
         this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
-        this.actionPoster = builder.actionPoster;
         this.logger = Defaults.getLogger();
         loadActionHelperFactory();
     }
@@ -66,11 +63,7 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    public <A> A runAction(A action) {
-        ActionHelper<A> helper = getActionHelper(action.getClass());
-        if (helper == null) {
-            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
-        }
+    public <A> A doAction(A action, ActionHelper<A> helper) {
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
         for (RequestInterceptor requestInterceptor : requestInterceptors) {
@@ -97,74 +90,56 @@ public class SantaRest {
         return action;
     }
 
-    public <A> Observable<A> createObservable(final A... actions) {
-        return Observable.from(actions)
-                .doOnNext(new Action1<A>() {
+    public <A> Observable<A> createActionObservable(final A action) {
+        final ActionHelper<A> helper = getActionHelper(action.getClass());
+        if (helper == null) {
+            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
+        }
+        return Observable
+                .create(new CallOnSubscribe<A>(new Func0<A>() {
                     @Override
-                    public void call(A a) {
-                        runAction(a);
+                    public A call() {
+                        return doAction(action, helper);
                     }
-                });
+                }));
     }
 
-    public <A> SantaRestExecutor<A> createExecutor(final A... actions) {
+    public <A> SantaRestExecutor<A> createExecutor(A action) {
+        final Observable<A> observable = createActionObservable(action);
         return new SantaRestExecutor<A>(new Func0<Observable<A>>() {
             @Override
             public Observable<A> call() {
-                return createObservable(actions);
+                return observable;
             }
         });
     }
 
-    /**
-     * Request will be performed in working thread
-     *
-     * @param action any object annotated with
-     * @see com.santarest.annotations.RestAction
-     */
-    public <A> void sendAction(A action) {
-        sendAction(action, null);
-    }
+    final private static class CallOnSubscribe<A> implements Observable.OnSubscribe<A> {
 
-    /**
-     * Request will be performed in working thread
-     *
-     * @param action any object annotated with
-     * @see com.santarest.annotations.RestAction
-     */
-    public <A> void sendAction(final A action, Callback<A> callback) {
-        CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, callback);
-        executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
-            @Override
-            protected void doAction(A action) {
-                runAction(action);
+        private final Func0<A> func;
+
+        CallOnSubscribe(Func0<A> func) {
+            this.func = func;
+        }
+
+        @Override
+        public void call(Subscriber<? super A> subscriber) {
+            try {
+                A action = func.call();
+                if (!subscriber.isUnsubscribed()) {
+                    subscriber.onNext(action);
+                }
+            } catch (final Exception e) {
+                Exceptions.throwIfFatal(e);
+                if (!subscriber.isUnsubscribed()) {
+                    subscriber.onError(e);
+                }
             }
-        });
-    }
-
-    /**
-     * Subscribe to receiving filled actions after server response.
-     * Posting actions to subscriber is realised by ActionPoster
-     *
-     * @param subscriber
-     * @see ActionPoster
-     */
-    public void subscribe(Object subscriber) {
-        if (actionPoster != null) {
-            actionPoster.subscribe(subscriber);
+            if (!subscriber.isUnsubscribed()) {
+                subscriber.onCompleted();
+            }
         }
-    }
 
-    /**
-     * Should be used for unsubscribing objects, which shouldn't anymore receive events.
-     *
-     * @param subscriber
-     * @see ActionPoster
-     */
-    public void unsubscribe(Object subscriber) {
-        if (actionPoster != null) {
-            actionPoster.unsubscribe(subscriber);
-        }
     }
 
     private ActionHelper getActionHelper(Class actionClass) {
@@ -213,74 +188,6 @@ public class SantaRest {
 
     }
 
-    private static class CallbackWrapper<A> implements Callback<A> {
-
-        private final ActionPoster actionPoster;
-        private final Callback<A> callback;
-
-        private CallbackWrapper(ActionPoster actionPoster, Callback<A> callback) {
-            this.actionPoster = actionPoster;
-            this.callback = callback;
-        }
-
-        @Override
-        public void onSuccess(A a) {
-            if (callback != null) {
-                callback.onSuccess(a);
-            }
-            if (actionPoster != null) {
-                actionPoster.post(a);
-            }
-        }
-
-        @Override
-        public void onFail(A action, Exception error) {
-            if (callback != null) {
-                callback.onFail(action, error);
-            }
-            if (actionPoster != null) {
-                actionPoster.post(action);
-            }
-        }
-    }
-
-    private static abstract class CallbackRunnable<A> implements Runnable {
-        private final Callback<A> callback;
-        private final Executor callbackExecutor;
-        private final A action;
-
-        private CallbackRunnable(A action, Callback<A> callback, Executor callbackExecutor) {
-            this.action = action;
-            this.callback = callback;
-            this.callbackExecutor = callbackExecutor;
-        }
-
-        @Override
-        public final void run() {
-            try {
-                doAction(action);
-                callbackExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onSuccess(action);
-                    }
-                });
-            } catch (SantaRestException e) {
-                throw e;
-            } catch (final Exception e) {
-                callbackExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onFail(action, e);
-                    }
-                });
-            }
-        }
-
-        protected abstract void doAction(A action);
-    }
-
-
     public static class Builder {
         private String serverUrl;
         private HttpClient client;
@@ -289,7 +196,6 @@ public class SantaRest {
         private List<RequestInterceptor> requestInterceptors = new ArrayList<RequestInterceptor>();
         private List<ResponseListener> responseInterceptors = new ArrayList<ResponseListener>();
         private Converter converter;
-        private ActionPoster actionPoster;
 
         /**
          * API URL.
@@ -364,20 +270,6 @@ public class SantaRest {
         }
 
         /**
-         * For example action poster wrapper of buses
-         *
-         * @see de.greenrobot.event.EventBus
-         * @see com.squareup.otto.Bus
-         */
-        public Builder setActionPoster(ActionPoster actionPoster) {
-            if (actionPoster == null) {
-                throw new IllegalArgumentException("ActionPoster may not be null.");
-            }
-            this.actionPoster = actionPoster;
-            return this;
-        }
-
-        /**
          * Create the {@link SantaRest} instance.
          */
         public SantaRest build() {
@@ -394,15 +286,6 @@ public class SantaRest {
             }
             if (client == null) {
                 client = Defaults.getClient();
-            }
-            if (executor == null) {
-                executor = Defaults.getDefaultHttpExecutor();
-            }
-            if (callbackExecutor == null) {
-                callbackExecutor = Defaults.getDefaultCallbackExecutor();
-            }
-            if (actionPoster == null) {
-                actionPoster = Defaults.getDefualtActionPoster();
             }
         }
     }

@@ -9,7 +9,6 @@ import com.santarest.SantaRest;
 import com.santarest.SantaRestExecutor;
 import com.santarest.http.Request;
 import com.santarest.http.Response;
-import com.squareup.otto.Subscribe;
 
 import java.util.concurrent.Executor;
 
@@ -42,25 +41,7 @@ public class MainActivity extends ActionBarActivity {
 
                 })
                 .build();
-        uploadFileServer = new SantaRest.Builder()
-                .setServerUrl("http://posttestserver.com")
-                .addRequestInterceptor(new SantaRest.RequestInterceptor() {
-                    @Override
-                    public void intercept(RequestBuilder request) {
-                        request.addHeader("test", "test");
-                    }
-                })
-                .addResponseInterceptor(new SantaRest.ResponseListener() {
-                    @Override
-                    public void onResponseReceived(Object action, Request request, Response response) {
-                        System.out.println(response);
-                    }
-                })
-                .build();
-//        uploadFileServer.sendAction(new UploadFileAction());
-//        githubRest.sendAction(new ExampleAction("square", "otto"));
-//        githubRest.sendAction(new OuterAction.InnerAction());
-        githubRest.createObservable(new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"), new ExampleAction("santagroup", "santarest"))
+        githubRest.createActionObservable(new ExampleAction("santagroup", "santarest"))
                   .subscribeOn(Schedulers.io())
                   .observeOn(Schedulers.from(new Executor() {
                       Handler handler = new Handler();
@@ -103,34 +84,5 @@ public class MainActivity extends ActionBarActivity {
             }
         });
         restExecutor.execute();
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        githubRest.subscribe(this);
-        uploadFileServer.subscribe(this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        githubRest.unsubscribe(this);
-        uploadFileServer.unsubscribe(this);
-    }
-
-    @Subscribe
-    public void onExampleAction(ExampleAction action) {
-        System.out.println(action);
-        System.out.println(action.success);
-        System.out.println(action.isSuccess());
-    }
-
-    @Subscribe
-    public void onUploadFileAction(UploadFileAction action) {
-        System.out.println(action);
-        System.out.println(action.success);
-        System.out.println("response = " + action.getResponse());
     }
 }
