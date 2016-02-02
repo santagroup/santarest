@@ -65,6 +65,7 @@ public class MainActivity extends ActionBarActivity {
                   });
 
         SantaRestExecutor<ExampleAction> restExecutor = githubRest.createExecutor();
+        restExecutor.subscribeOn(Schedulers.io());
         restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {

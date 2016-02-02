@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.Exceptions;
 import rx.functions.Func1;
@@ -93,13 +94,17 @@ public class SantaRest {
                 }));
     }
 
-    public <A> SantaRestExecutor<A> createExecutor() {
+    public <A> SantaRestExecutor<A> createExecutor(Scheduler subscribeOn, Scheduler observeOn) {
         return new SantaRestExecutor<A>(new Func1<A, Observable<A>>() {
             @Override
             public Observable<A> call(A action) {
                 return createObservable(action);
             }
-        });
+        }).observeOn(observeOn).subscribeOn(subscribeOn);
+    }
+
+    public <A> SantaRestExecutor<A> createExecutor(){
+        return createExecutor(null, null);
     }
 
     final private static class CallOnSubscribe<A> implements Observable.OnSubscribe<A> {
