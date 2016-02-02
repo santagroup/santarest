@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import rx.Observable;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
@@ -31,7 +32,7 @@ public class SantaRest {
     private final List<ResponseListener> responseInterceptors;
     private final Converter converter;
     private final ActionPoster actionPoster;
-    private final Subject signal;
+    private final Subject<ActionState, ActionState> signal;
     private final Logger logger;
 
     private final Map<Class, ActionHelper> actionHelperCache = new HashMap<Class, ActionHelper>();
@@ -67,11 +68,15 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    public <A> A runAction(A action) {
+    public <A> ActionState<A> runAction(A action) {
         ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
             throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
         }
+        ActionState<A> actionState = new ActionState<A>();
+        actionState.action = action;
+        actionState.actionStatus = ActionStatus.START;
+        signal.onNext(actionState);
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
         for (RequestInterceptor requestInterceptor : requestInterceptors) {
@@ -83,19 +88,22 @@ public class SantaRest {
             logger.log("Start executing request %s", nameActionForlog);
             Response response = client.execute(request);
             logger.log("Received response of %s", nameActionForlog);
-            action = helper.onResponse(action, response, converter);
+            helper.onResponse(action, response, converter);
             for (ResponseListener listener : responseInterceptors) {
                 listener.onResponseReceived(action, request, response);
             }
             logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
+            actionState.actionStatus = ActionStatus.FINISHED;
         } catch (Exception error) {
             logger.error("Failed action %s executing", action.getClass().getSimpleName());
             for (StackTraceElement element : error.getStackTrace()) {
                 logger.error("%s", element.toString());
             }
-            action = helper.onError(action, error);
+            helper.onError(action, error);
+            actionState.actionStatus = ActionStatus.FAIL;
+            actionState.throwable = error;
         }
-        return action;
+        return actionState;
     }
 
     public <A> Observable<A> createObservable(A action) {
@@ -128,8 +136,8 @@ public class SantaRest {
         CallbackWrapper<A> callbackWrapper = new CallbackWrapper<A>(actionPoster, signal, callback);
         executor.execute(new CallbackRunnable<A>(action, callbackWrapper, callbackExecutor) {
             @Override
-            protected void doAction(A action) {
-                runAction(action);
+            protected ActionState<A> doAction(A action) {
+                return runAction(action);
             }
         });
     }
@@ -147,8 +155,30 @@ public class SantaRest {
      * Subscribe to receive actions using Observable
      * @return Observable
      */
+    public <A> Observable<ActionState> observeStates(final Class<A>... actionClasses) {
+        return signal.asObservable()
+                .filter(new Func1<ActionState, Boolean>() {
+                    @Override
+                    public Boolean call(final ActionState actionState) {
+                        for (Class<A> clazz : actionClasses) {
+                            if(clazz.isInstance(actionState.action)) return true;
+                        }
+                        return false;
+                    }
+                });
+    }
+
+    /**
+     * Subscribe to receive actions using Observable
+     * @return Observable
+     */
     public <A> Observable<A> observeActions() {
-        return signal.asObservable();
+        return signal.asObservable().map(new Func1<ActionState, A>() {
+            @Override
+            public A call(ActionState actionState) {
+                return (A) actionState.action;
+            }
+        });
     }
 
     private ActionHelper getActionHelper(Class actionClass) {
@@ -197,6 +227,16 @@ public class SantaRest {
 
     }
 
+    public static class ActionState<A>{
+        public ActionStatus actionStatus;
+        public A action;
+        public Throwable throwable;
+    }
+
+    public enum ActionStatus {
+        FAIL, START, FINISHED
+    }
+
     private static class CallbackWrapper<A> implements Callback<A> {
 
         private final ActionPoster actionPoster;
@@ -210,28 +250,28 @@ public class SantaRest {
         }
 
         @Override
-        public void onSuccess(A action) {
+        public void onSuccess(ActionState<A> state) {
             if (actionPoster != null) {
-                actionPoster.post(action);
+                actionPoster.post(state);
             }
             if (signal != null) {
-                signal.onNext(action);
+                signal.onNext(state);
             }
             if (callback != null) {
-                callback.onSuccess(action);
+                callback.onSuccess(state);
             }
         }
 
         @Override
-        public void onFail(A action, Exception error) {
+        public void onFail(ActionState<A> state, Exception error) {
             if (actionPoster != null) {
-                actionPoster.post(action);
+                actionPoster.post(state);
             }
             if (signal != null) {
-                signal.onNext(action);
+                signal.onNext(state);
             }
             if (callback != null) {
-                callback.onFail(action, error);
+                callback.onFail(state, error);
             }
         }
     }
@@ -239,10 +279,11 @@ public class SantaRest {
     private static abstract class CallbackRunnable<A> implements Runnable {
         private final Callback<A> callback;
         private final Executor callbackExecutor;
-        private final A action;
+        private ActionState<A> actionState;
 
         private CallbackRunnable(A action, Callback<A> callback, Executor callbackExecutor) {
-            this.action = action;
+            this.actionState = new ActionState<A>();
+            this.actionState.action = action;
             this.callback = callback;
             this.callbackExecutor = callbackExecutor;
         }
@@ -250,26 +291,28 @@ public class SantaRest {
         @Override
         public final void run() {
             try {
-                doAction(action);
+                actionState = doAction(actionState.action);
                 callbackExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onSuccess(action);
+                        callback.onSuccess(actionState);
                     }
                 });
             } catch (SantaRestException e) {
                 throw e;
             } catch (final Exception e) {
+                actionState.actionStatus = ActionStatus.FAIL;
+                actionState.throwable = e;
                 callbackExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        callback.onFail(action, e);
+                        callback.onFail(actionState, e);
                     }
                 });
             }
         }
 
-        protected abstract void doAction(A action);
+        protected abstract ActionState<A> doAction(A action);
     }
 
 

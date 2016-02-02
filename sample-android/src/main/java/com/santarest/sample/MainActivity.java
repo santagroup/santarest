@@ -14,7 +14,9 @@ import java.util.concurrent.Executor;
 
 import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -58,14 +60,14 @@ public class MainActivity extends ActionBarActivity {
                 })
                 .build();
         uploadFileServer.sendAction(new UploadFileAction());
-        githubRest.observeActions()
-                .ofType(ExampleAction.class)
-                .subscribe(new Action1<ExampleAction>() {
-                    @Override
-                    public void call(ExampleAction exampleAction) {
-                        System.out.println("exampleAction = [" + exampleAction + "]");
-                    }
-                });
+        githubRest.observeStates().ofType();
+//                .ofType(ExampleAction.class)
+//                .subscribe(new Action1<ExampleAction>() {
+//                    @Override
+//                    public void call(ExampleAction exampleAction) {
+//                        System.out.println("exampleAction = [" + exampleAction + "]");
+//                    }
+//                });
         githubRest.sendAction(new ExampleAction("square", "otto"));
         githubRest.sendAction(new OuterAction.InnerAction());
         githubRest.createObservable(new ExampleAction("santagroup", "santarest"))

@@ -1,11 +1,13 @@
 package com.santarest.callback;
 
+import com.santarest.SantaRest;
+
 public interface Callback<A> {
 
     /**
      * Successful HTTP response.
      */
-    void onSuccess(A action);
+    void onSuccess(SantaRest.ActionState<A> state);
 
     /**
      * Unsuccessful HTTP response due to network failure, non-2XX status code, or unexpected
@@ -13,5 +15,5 @@ public interface Callback<A> {
      *
      * @param error
      */
-    void onFail(A action, Exception error);
+    void onFail(SantaRest.ActionState<A> state, Exception error);
 }
