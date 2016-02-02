@@ -11,21 +11,19 @@ import rx.subjects.PublishSubject;
 final public class SantaRestExecutor<A> {
 
     private final PublishSubject<ActionState<A>> signal;
-    private final ActionState<A> state;
-    private ConnectableObservable<ActionState<A>> cachedPipeline;
+    private ConnectableObservable<ActionState<A>> cachedSignal;
 
     private final Func1<A, Observable<A>> observableFactory;
 
-    SantaRestExecutor(A action, Func1<A, Observable<A>> observableFactory) {
-        this.state = new ActionState<A>(action);
+    SantaRestExecutor(Func1<A, Observable<A>> observableFactory) {
         this.observableFactory = observableFactory;
         this.signal = PublishSubject.create();
         createCachedPipeline();
     }
 
     private void createCachedPipeline() {
-        this.cachedPipeline = signal.replay(1);
-        this.cachedPipeline.connect();
+        this.cachedSignal = signal.replay(1);
+        this.cachedSignal.connect();
     }
 
     public Observable<ActionState<A>> observe() {
@@ -33,7 +31,7 @@ final public class SantaRestExecutor<A> {
     }
 
     public Observable<ActionState<A>> observeWithReplay() {
-        return cachedPipeline.asObservable();
+        return cachedSignal.asObservable();
     }
 
     public Observable<A> observeActions(){
@@ -51,11 +49,12 @@ final public class SantaRestExecutor<A> {
         createCachedPipeline();
     }
 
-    public void execute() {
-        createJob().subscribe();
+    public void execute(A action) {
+        createJob(action).subscribe();
     }
 
-    public Observable<ActionState<A>> createJob() {
+    public Observable<ActionState<A>> createJob(A action) {
+        final ActionState<A> state = new ActionState<A>(action);
         return Observable.defer(new Func0<Observable<A>>() {
             @Override
             public Observable<A> call() {

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 
+import com.santarest.ActionStateSubscriber;
 import com.santarest.RequestBuilder;
 import com.santarest.SantaRest;
 import com.santarest.SantaRestExecutor;
@@ -63,26 +64,44 @@ public class MainActivity extends ActionBarActivity {
                       }
                   });
 
-        SantaRestExecutor<ExampleAction> restExecutor = githubRest.createExecutor(new ExampleAction("santagroup", "santarest"));
+        SantaRestExecutor<ExampleAction> restExecutor = githubRest.createExecutor();
+        restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
+            @Override
+            public void call(ExampleAction exampleAction) {
+                System.out.println("exampleAction = [" + exampleAction + "]");
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
+        restExecutor.observe().subscribe(new ActionStateSubscriber<ExampleAction>()
+                .onFinish(new Action1<ExampleAction>() {
+                    @Override
+                    public void call(ExampleAction exampleAction) {
+                        System.out.println("exampleAction = [" + exampleAction + "]");
+                    }
+                })
+                .onFail(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                }));
         restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {
                 System.out.println(exampleAction);
             }
         });
-        restExecutor.observeActions().subscribe(new Action1<ExampleAction>() {
-            @Override
-            public void call(ExampleAction exampleAction) {
-                System.out.println(exampleAction);
-            }
-        });
-        restExecutor.execute();
+        restExecutor.execute(new ExampleAction("santagroup", "santarest"));
         restExecutor.observeActionsWithReplay().subscribe(new Action1<ExampleAction>() {
             @Override
             public void call(ExampleAction exampleAction) {
                 System.out.println(exampleAction);
             }
         });
-        restExecutor.execute();
+//        restExecutor.execute();
     }
 }

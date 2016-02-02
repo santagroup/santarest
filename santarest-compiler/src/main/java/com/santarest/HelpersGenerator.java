@@ -3,7 +3,6 @@ package com.santarest;
 
 import com.google.gson.reflect.TypeToken;
 import com.santarest.annotations.Body;
-import com.santarest.annotations.Error;
 import com.santarest.annotations.Field;
 import com.santarest.annotations.Part;
 import com.santarest.annotations.Path;
@@ -60,27 +59,7 @@ public class HelpersGenerator extends Generator {
 
         classBuilder.addMethod(createFillRequestMethod(actionClass));
         classBuilder.addMethod(createOnResponseMethod(actionClass));
-        classBuilder.addMethod(createOnErrorMethod(actionClass));
         saveClass(actionClass.getPackageName(), classBuilder.build());
-    }
-
-    private MethodSpec createOnErrorMethod(RestActionClass actionClass) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("onError")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .returns(actionClass.getTypeName())
-                .addParameter(actionClass.getTypeName(), "action")
-                .addParameter(Throwable.class, "error");
-        for (Element element : actionClass.getAnnotatedElements(Error.class)) {
-            String fieldAddress = getFieldAddress(actionClass, element);
-            if (TypeUtils.containsType(element, Throwable.class)) {
-                builder.addStatement(fieldAddress + " = error", element);
-            } else if (TypeUtils.containsType(element, Exception.class)) {
-                builder.addStatement(fieldAddress + " = ($T) error", element, Exception.class);
-            }
-        }
-        builder.addStatement("return action");
-        return builder.build();
     }
 
     private MethodSpec createFillRequestMethod(RestActionClass actionClass) {

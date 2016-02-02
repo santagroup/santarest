@@ -1,6 +1,5 @@
 package com.santarest.sample;
 
-import com.santarest.annotations.Error;
 import com.santarest.annotations.Path;
 import com.santarest.annotations.Query;
 import com.santarest.annotations.RequestHeader;
@@ -49,9 +48,6 @@ public class ExampleAction extends BaseExampleAction {
 
     @RequestHeader("X-GitHub-Request-Id")
     String requestId;
-
-    @Error
-    Exception error;
 
     @Response
     String errorResponse;

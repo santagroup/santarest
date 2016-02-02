@@ -2,7 +2,6 @@ package com.santarest.validation;
 
 import com.santarest.RestActionClass;
 import com.santarest.annotations.Body;
-import com.santarest.annotations.Error;
 import com.santarest.annotations.Field;
 import com.santarest.annotations.Part;
 import com.santarest.annotations.ResponseHeader;
@@ -42,7 +41,6 @@ public class RestActionValidators implements Validator<RestActionClass> {
         //annotation rules
         validators.add(new AnnotationTypesValidator(ResponseHeader.class, String.class));
         validators.add(new AnnotationTypesValidator(Status.class, Boolean.class, Integer.class, Long.class, String.class, boolean.class, int.class, long.class));
-        validators.add(new AnnotationTypesValidator(Error.class, Throwable.class, Exception.class));
         validators.add(new AnnotationTypesValidator(Part.class, File.class, byte[].class, String.class, HttpBody.class,
                 ByteArrayBody.class, MultipartRequestBody.class, FormUrlEncodedRequestBody.class, FileBody.class));
         validators.add(new AnnotationQuantityValidator(Body.class, 1));

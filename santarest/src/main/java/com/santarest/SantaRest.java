@@ -7,15 +7,16 @@ import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.santarest.utils.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.Exceptions;
-import rx.functions.Func0;
 import rx.functions.Func1;
 
 public class SantaRest {
@@ -59,7 +60,7 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    private <A> A runAction(A action) {
+    private <A> A runAction(A action) throws IOException {
         final ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
             throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
@@ -70,38 +71,30 @@ public class SantaRest {
             requestInterceptor.intercept(builder);
         }
         Request request = builder.build();
-        try {
-            String nameActionForlog = action.getClass().getSimpleName();
-            logger.log("Start executing request %s", nameActionForlog);
-            Response response = client.execute(request);
-            logger.log("Received response of %s", nameActionForlog);
-            action = helper.onResponse(action, response, converter);
-            for (ResponseListener listener : responseInterceptors) {
-                listener.onResponseReceived(action, request, response);
-            }
-            logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
-        } catch (Exception error) {
-            logger.error("Failed action %s executing", action.getClass().getSimpleName());
-            for (StackTraceElement element : error.getStackTrace()) {
-                logger.error("%s", element.toString());
-            }
-            action = helper.onError(action, error);
+        String nameActionForlog = action.getClass().getSimpleName();
+        logger.log("Start executing request %s", nameActionForlog);
+        Response response = client.execute(request);
+        logger.log("Received response of %s", nameActionForlog);
+        action = helper.onResponse(action, response, converter);
+        for (ResponseListener listener : responseInterceptors) {
+            listener.onResponseReceived(action, request, response);
         }
+        logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
         return action;
     }
 
     public <A> Observable<A> createObservable(final A action) {
         return Observable
-                .create(new CallOnSubscribe<A>(new Func0<A>() {
+                .create(new CallOnSubscribe<A>(new Callable<A>() {
                     @Override
-                    public A call() {
+                    public A call() throws Exception {
                         return runAction(action);
                     }
                 }));
     }
 
-    public <A> SantaRestExecutor<A> createExecutor(final A action) {
-        return new SantaRestExecutor<A>(action, new Func1<A, Observable<A>>() {
+    public <A> SantaRestExecutor<A> createExecutor() {
+        return new SantaRestExecutor<A>(new Func1<A, Observable<A>>() {
             @Override
             public Observable<A> call(A action) {
                 return createObservable(action);
@@ -111,9 +104,9 @@ public class SantaRest {
 
     final private static class CallOnSubscribe<A> implements Observable.OnSubscribe<A> {
 
-        private final Func0<A> func;
+        private final Callable<A> func;
 
-        CallOnSubscribe(Func0<A> func) {
+        CallOnSubscribe(Callable<A> func) {
             this.func = func;
         }
 
@@ -137,7 +130,6 @@ public class SantaRest {
                 subscriber.onCompleted();
             }
         }
-
     }
 
     private ActionHelper getActionHelper(Class actionClass) {
@@ -155,8 +147,6 @@ public class SantaRest {
         RequestBuilder fillRequest(RequestBuilder requestBuilder, T action);
 
         T onResponse(T action, Response response, Converter converter);
-
-        T onError(T action, Throwable error);
     }
 
     interface ActionHelperFactory {

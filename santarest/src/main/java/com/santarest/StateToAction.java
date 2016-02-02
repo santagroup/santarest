@@ -5,8 +5,8 @@ import rx.functions.Func1;
 
 class StateToAction<A> implements Observable.Transformer<ActionState<A>, A> {
     @Override
-    public Observable<A> call(Observable<ActionState<A>> jobObservable) {
-        return jobObservable.flatMap(new Func1<ActionState<A>, Observable<A>>() {
+    public Observable<A> call(Observable<ActionState<A>> observable) {
+        return observable.flatMap(new Func1<ActionState<A>, Observable<A>>() {
             @Override
             public Observable<A> call(ActionState<A> state) {
                 switch (state.status) {
