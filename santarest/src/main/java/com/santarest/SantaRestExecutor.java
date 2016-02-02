@@ -50,10 +50,10 @@ final public class SantaRestExecutor<A> {
     }
 
     public void execute(A action) {
-        createJob(action).subscribe();
+        createObservable(action).subscribe();
     }
 
-    public Observable<ActionState<A>> createJob(A action) {
+    public Observable<ActionState<A>> createObservable(A action) {
         final ActionState<A> state = new ActionState<A>(action);
         return Observable.defer(new Func0<Observable<A>>() {
             @Override
