@@ -1,4 +1,4 @@
-package com.santarest.sample;
+package com.santarest.sample.tools;
 
 import android.util.Log;
 
