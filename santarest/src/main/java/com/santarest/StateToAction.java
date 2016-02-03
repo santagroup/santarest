@@ -17,7 +17,7 @@ class StateToAction<A> implements Observable.Transformer<ActionState<A>, A> {
                     case FAIL:
                         return Observable.error(state.error);
                     default:
-                        throw new IllegalArgumentException("Job status is unknown");
+                        throw new IllegalArgumentException("Action status is unknown");
                 }
             }
         });

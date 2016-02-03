@@ -7,7 +7,6 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.ConnectableObservable;
-import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 final public class SantaRestExecutor<A> {
@@ -38,13 +37,13 @@ final public class SantaRestExecutor<A> {
         return cachedSignal.asObservable();
     }
 
-    public Observable<A> observeActions(){
+    public Observable<A> observeActions() {
         return observe()
                 .compose(new StateToAction<A>());
 
     }
 
-    public Observable<A> observeActionsWithReplay(){
+    public Observable<A> observeActionsWithReplay() {
         return observeWithReplay()
                 .compose(new StateToAction<A>());
     }
@@ -57,12 +56,12 @@ final public class SantaRestExecutor<A> {
         createObservable(action).subscribe();
     }
 
-    public SantaRestExecutor<A> subscribeOn(Scheduler subscribeOn){
+    public SantaRestExecutor<A> subscribeOn(Scheduler subscribeOn) {
         this.subscribeOn = subscribeOn;
         return this;
     }
 
-    public SantaRestExecutor<A> observeOn(Scheduler observeOn){
+    public SantaRestExecutor<A> observeOn(Scheduler observeOn) {
         this.observeOn = observeOn;
         return this;
     }
@@ -87,7 +86,7 @@ final public class SantaRestExecutor<A> {
         }).onErrorReturn(new Func1<Throwable, ActionState<A>>() {
             @Override
             public ActionState<A> call(Throwable throwable) {
-                return state.error(throwable);
+                return state.status(ActionState.Status.FAIL).error(throwable);
             }
         }).doOnNext(new Action1<ActionState<A>>() {
             @Override
@@ -97,9 +96,9 @@ final public class SantaRestExecutor<A> {
         }).compose(new Observable.Transformer<ActionState<A>, ActionState<A>>() {
             @Override
             public Observable<ActionState<A>> call(Observable<ActionState<A>> observable) {
-                if(subscribeOn!=null)
+                if (subscribeOn != null)
                     observable = observable.subscribeOn(subscribeOn);
-                if(observeOn!=null)
+                if (observeOn != null)
                     observable = observable.observeOn(observeOn);
                 return observable;
             }

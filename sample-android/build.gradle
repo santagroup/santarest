@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.santarest.sample"
-        minSdkVersion 10
+        minSdkVersion 21
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -31,4 +31,5 @@ dependencies {
     compile project(":santarest")
     apt project(':santarest-compiler')
     compile'io.reactivex:rxjava:1.0.15'
+    compile'io.reactivex:rxjava-debug:+'
 }
