@@ -94,17 +94,17 @@ public class SantaRest {
                 }));
     }
 
-    public <A> SantaRestExecutor<A> createExecutor(Class<A> actionClass, Scheduler subscribeOn, Scheduler observeOn) {
+    public <A> SantaRestExecutor<A> createExecutor(Class<A> actionClass, Scheduler scheduler) {
         return new SantaRestExecutor<A>(new Func1<A, Observable<A>>() {
             @Override
             public Observable<A> call(A action) {
                 return createObservable(action);
             }
-        }).observeOn(observeOn).subscribeOn(subscribeOn);
+        }).scheduler(scheduler);
     }
 
     public <A> SantaRestExecutor<A> createExecutor(Class<A> actionClass){
-        return createExecutor(actionClass, null, null);
+        return createExecutor(actionClass, null);
     }
 
     final private static class CallOnSubscribe<A> implements Observable.OnSubscribe<A> {

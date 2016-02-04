@@ -16,7 +16,6 @@ final public class SantaRestExecutor<A> {
 
     private final Func1<A, Observable<A>> observableFactory;
     private Scheduler subscribeOn;
-    private Scheduler observeOn;
 
     SantaRestExecutor(Func1<A, Observable<A>> observableFactory) {
         this.observableFactory = observableFactory;
@@ -56,13 +55,8 @@ final public class SantaRestExecutor<A> {
         createObservable(action).subscribe();
     }
 
-    public SantaRestExecutor<A> subscribeOn(Scheduler subscribeOn) {
-        this.subscribeOn = subscribeOn;
-        return this;
-    }
-
-    public SantaRestExecutor<A> observeOn(Scheduler observeOn) {
-        this.observeOn = observeOn;
+    public SantaRestExecutor<A> scheduler(Scheduler scheduler) {
+        this.subscribeOn = scheduler;
         return this;
     }
 
@@ -98,8 +92,6 @@ final public class SantaRestExecutor<A> {
             public Observable<ActionState<A>> call(Observable<ActionState<A>> observable) {
                 if (subscribeOn != null)
                     observable = observable.subscribeOn(subscribeOn);
-                if (observeOn != null)
-                    observable = observable.observeOn(observeOn);
                 return observable;
             }
         });

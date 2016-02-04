@@ -8,7 +8,6 @@ import com.santarest.SantaRestExecutor;
 import com.santarest.sample.network.UsersAction;
 import com.santarest.sample.tools.AndroidLogHook;
 
-import rx.android.schedulers.AndroidSchedulers;
 import rx.plugins.RxJavaPlugins;
 import rx.schedulers.Schedulers;
 
@@ -39,10 +38,10 @@ public class App extends Application {
         return gitHubAPI;
     }
 
-    public SantaRestExecutor<UsersAction> getUsersExecutor(){
-        if(usersExecutor == null){
+    public SantaRestExecutor<UsersAction> getUsersExecutor() {
+        if (usersExecutor == null) {
             usersExecutor = getGitHubAPI().createExecutor(UsersAction.class)
-                    .subscribeOn(Schedulers.io());
+                    .scheduler(Schedulers.io());
         }
         return usersExecutor;
     }
