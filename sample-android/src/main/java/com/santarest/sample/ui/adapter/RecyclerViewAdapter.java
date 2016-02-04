@@ -23,14 +23,11 @@ public abstract class RecyclerViewAdapter<VH extends RecyclerView.ViewHolder> ex
         if (listener == null) {
             return;
         }
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (listener == null) {
-                    return;
-                }
-                listener.onItemClicked(v, holder.getPosition());
+        holder.itemView.setOnClickListener(v -> {
+            if (listener == null) {
+                return;
             }
+            listener.onItemClicked(v, holder.getPosition());
         });
     }
 }
