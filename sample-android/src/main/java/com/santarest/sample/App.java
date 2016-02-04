@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.santarest.SantaRest;
 import com.santarest.SantaRestExecutor;
+import com.santarest.sample.network.UserReposAction;
 import com.santarest.sample.network.UsersAction;
 import com.santarest.sample.tools.AndroidLogHook;
 
@@ -21,6 +22,8 @@ public class App extends Application {
     private SantaRest gitHubAPI;
 
     private SantaRestExecutor<UsersAction> usersExecutor;
+
+    private SantaRestExecutor<UserReposAction> userReposExecutor;
 
     @Override
     public void onCreate() {
@@ -44,6 +47,14 @@ public class App extends Application {
                     .scheduler(Schedulers.io());
         }
         return usersExecutor;
+    }
+
+    public SantaRestExecutor<UserReposAction> getUserReposExecutor() {
+        if (userReposExecutor == null) {
+            userReposExecutor = getGitHubAPI().createExecutor(UserReposAction.class)
+                    .scheduler(Schedulers.io());
+        }
+        return userReposExecutor;
     }
 
     public static App get(Context context) {

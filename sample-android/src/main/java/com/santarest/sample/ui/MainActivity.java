@@ -11,12 +11,9 @@ import com.santarest.ActionStateSubscriber;
 import com.santarest.SantaRestExecutor;
 import com.santarest.sample.App;
 import com.santarest.sample.R;
-import com.santarest.sample.model.User;
 import com.santarest.sample.network.UsersAction;
 import com.santarest.sample.ui.adapter.UsersAdapter;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
-
-import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -32,7 +29,6 @@ public class MainActivity extends RxAppCompatActivity {
     SwipeRefreshLayout swipeRefreshLayout;
 
     private UsersAdapter adapter;
-    private ArrayList<User> users;
 
     private SantaRestExecutor<UsersAction> usersExecutor;
 
@@ -41,8 +37,8 @@ public class MainActivity extends RxAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_users);
         ButterKnife.bind(this);
-        setupRecyclerView();
         usersExecutor = App.get(this).getUsersExecutor();
+        setupRecyclerView();
         swipeRefreshLayout.setEnabled(true);
     }
 
@@ -55,8 +51,7 @@ public class MainActivity extends RxAppCompatActivity {
                 .subscribe(new ActionStateSubscriber<UsersAction>()
                         .onStart(() -> showProgressLoading(true))
                         .onFinish(usersAction -> {
-                            users = usersAction.getResponse();
-                            adapter.setData(users);
+                            adapter.setData(usersAction.getResponse());
                             showProgressLoading(false);
                         })
                         .onFail(throwable -> showProgressLoading(false)));
