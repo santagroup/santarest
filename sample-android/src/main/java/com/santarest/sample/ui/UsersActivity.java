@@ -11,7 +11,6 @@ import com.santarest.ActionStateSubscriber;
 import com.santarest.SantaRestExecutor;
 import com.santarest.sample.App;
 import com.santarest.sample.R;
-import com.santarest.sample.model.User;
 import com.santarest.sample.network.UsersAction;
 import com.santarest.sample.ui.adapter.UsersAdapter;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
@@ -51,7 +50,7 @@ public class UsersActivity extends RxAppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ActionStateSubscriber<UsersAction>()
                         .onStart(() -> showProgressLoading(true))
-                        .onFinish(usersAction -> {
+                        .onSuccess(usersAction -> {
                             adapter.setData(usersAction.getResponse());
                             showProgressLoading(false);
                         })

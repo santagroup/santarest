@@ -6,11 +6,11 @@ package com.santarest;
 public class ActionState<A> {
 
     public enum Status{
-        START, FINISH, FAIL
+        START, SUCCESS, FAIL, ERROR
     }
 
     public A action;
-    public Throwable error;
+    public Throwable throwable;
     public Status status;
 
     public ActionState(A action) {
@@ -22,8 +22,8 @@ public class ActionState<A> {
         return this;
     }
 
-    public ActionState<A> error(Throwable error) {
-        this.error = error;
+    public ActionState<A> throwable(Throwable throwable) {
+        this.throwable = throwable;
         return this;
     }
 
@@ -40,7 +40,7 @@ public class ActionState<A> {
         ActionState<?> that = (ActionState<?>) o;
 
         if (action != null ? !action.equals(that.action) : that.action != null) return false;
-        if (error != null ? !error.equals(that.error) : that.error != null) return false;
+        if (throwable != null ? !throwable.equals(that.throwable) : that.throwable != null) return false;
         return status == that.status;
 
     }
@@ -48,7 +48,7 @@ public class ActionState<A> {
     @Override
     public int hashCode() {
         int result = action != null ? action.hashCode() : 0;
-        result = 31 * result + (error != null ? error.hashCode() : 0);
+        result = 31 * result + (throwable != null ? throwable.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         return result;
     }
@@ -57,7 +57,7 @@ public class ActionState<A> {
     public String toString() {
         return "ActionState{" +
                 "action=" + action +
-                ", error=" + error +
+                ", throwable=" + throwable +
                 ", status=" + status +
                 '}';
     }

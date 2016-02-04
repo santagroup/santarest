@@ -12,10 +12,12 @@ class StateToAction<A> implements Observable.Transformer<ActionState<A>, A> {
                 switch (state.status) {
                     case START:
                         return Observable.never();
-                    case FINISH:
+                    case SUCCESS:
+                        return Observable.just(state.action);
+                    case ERROR:
                         return Observable.just(state.action);
                     case FAIL:
-                        return Observable.error(state.error);
+                        return Observable.error(state.throwable);
                     default:
                         throw new IllegalArgumentException("Action status is unknown");
                 }

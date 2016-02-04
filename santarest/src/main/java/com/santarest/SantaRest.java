@@ -81,6 +81,9 @@ public class SantaRest {
             listener.onResponseReceived(action, request, response);
         }
         logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
+        if(!response.isSuccessful()){ //throw exception to change action state
+            throw new SantaHTTPException();
+        }
         return action;
     }
 

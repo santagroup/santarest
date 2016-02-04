@@ -74,7 +74,7 @@ final public class SantaRestExecutor<A> {
         }).flatMap(new Func1<A, Observable<ActionState<A>>>() {
             @Override
             public Observable<ActionState<A>> call(A a) {
-                return Observable.just(state.status(ActionState.Status.FINISH));
+                return Observable.just(state.status(ActionState.Status.SUCCESS));
             }
         }).doOnSubscribe(new Action0() {
             @Override
@@ -84,7 +84,10 @@ final public class SantaRestExecutor<A> {
         }).onErrorReturn(new Func1<Throwable, ActionState<A>>() {
             @Override
             public ActionState<A> call(Throwable throwable) {
-                return state.status(ActionState.Status.FAIL).error(throwable);
+                if (throwable instanceof SantaHTTPException) {
+                    return state.status(ActionState.Status.ERROR);
+                }
+                return state.status(ActionState.Status.FAIL).throwable(throwable);
             }
         }).doOnNext(new Action1<ActionState<A>>() {
             @Override

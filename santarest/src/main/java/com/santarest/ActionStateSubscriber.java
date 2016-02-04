@@ -6,14 +6,20 @@ import rx.functions.Action1;
 
 public class ActionStateSubscriber<A> extends Subscriber<ActionState<A>> {
 
-    private Action1<A> onFinish;
+    private Action1<A> onSuccess;
     private Action1<Throwable> onFail;
+    private Action1<A> onError;
     private Action0 onStart;
     private Action1<ActionState<A>> beforeEach;
     private Action1<ActionState<A>> afterEach;
 
-    public ActionStateSubscriber<A> onFinish(Action1<A> onSuccess) {
-        this.onFinish = onSuccess;
+    public ActionStateSubscriber<A> onSuccess(Action1<A> onSuccess) {
+        this.onSuccess = onSuccess;
+        return this;
+    }
+
+    public ActionStateSubscriber<A> onError(Action1<A> onError) {
+        this.onError = onError;
         return this;
     }
 
@@ -43,11 +49,14 @@ public class ActionStateSubscriber<A> extends Subscriber<ActionState<A>> {
             case START:
                 if (onStart != null) onStart.call();
                 break;
-            case FINISH:
-                if (onFinish != null) onFinish.call(state.action);
+            case SUCCESS:
+                if (onSuccess != null) onSuccess.call(state.action);
                 break;
             case FAIL:
-                if (onFail != null) onFail.call(state.error);
+                if (onFail != null) onFail.call(state.throwable);
+                break;
+            case ERROR:
+                if (onError != null) onError.call(state.action);
                 break;
         }
         if (afterEach != null) afterEach.call(state);

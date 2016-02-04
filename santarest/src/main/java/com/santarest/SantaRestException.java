@@ -5,6 +5,9 @@ package com.santarest;
  */
 public class SantaRestException extends RuntimeException {
 
+    public SantaRestException() {
+    }
+
     public SantaRestException(String message) {
         super(message);
     }
