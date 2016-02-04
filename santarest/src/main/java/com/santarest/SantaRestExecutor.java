@@ -60,6 +60,10 @@ final public class SantaRestExecutor<A> {
         return this;
     }
 
+    public Observable<A> createActionsObservable(A action) {
+        return createObservable(action).compose(new StateToAction<A>());
+    }
+
     public Observable<ActionState<A>> createObservable(A action) {
         final ActionState<A> state = new ActionState<A>(action);
         return Observable.defer(new Func0<Observable<A>>() {

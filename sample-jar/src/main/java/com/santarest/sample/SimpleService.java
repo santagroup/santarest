@@ -1,6 +1,5 @@
 package com.santarest.sample;
 
-import com.santarest.ActionState;
 import com.santarest.ActionStateSubscriber;
 import com.santarest.SantaRest;
 import com.santarest.SantaRestExecutor;
@@ -31,10 +30,8 @@ public class SimpleService {
 
 
         usersExecutor.createObservable(new UsersAction())
-                .filter(state -> state.status == ActionState.Status.FINISH)
                 .filter(state -> state.action.isSuccess())
-                .flatMap(state -> Observable.from(state.action.response).first())
-                .cast(User.class)
+                .flatMap(state -> Observable.<User>from(state.action.response).first())
                 .flatMap(user -> userReposExecutor.createObservable(new UserReposAction(user.getLogin())))
                 .subscribe(new ActionStateSubscriber<UserReposAction>()
                         .onFail(throwable -> System.out.println("repos request error " + throwable))
