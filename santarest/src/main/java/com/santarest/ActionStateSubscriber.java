@@ -8,7 +8,7 @@ public class ActionStateSubscriber<A> extends Subscriber<ActionState<A>> {
 
     private Action1<A> onSuccess;
     private Action1<Throwable> onFail;
-    private Action1<A> onError;
+    private Action1<A> onServerError;
     private Action0 onStart;
     private Action1<ActionState<A>> beforeEach;
     private Action1<ActionState<A>> afterEach;
@@ -18,8 +18,8 @@ public class ActionStateSubscriber<A> extends Subscriber<ActionState<A>> {
         return this;
     }
 
-    public ActionStateSubscriber<A> onError(Action1<A> onError) {
-        this.onError = onError;
+    public ActionStateSubscriber<A> onServerError(Action1<A> onServerError) {
+        this.onServerError = onServerError;
         return this;
     }
 
@@ -56,7 +56,7 @@ public class ActionStateSubscriber<A> extends Subscriber<ActionState<A>> {
                 if (onFail != null) onFail.call(state.throwable);
                 break;
             case ERROR:
-                if (onError != null) onError.call(state.action);
+                if (onServerError != null) onServerError.call(state.action);
                 break;
         }
         if (afterEach != null) afterEach.call(state);

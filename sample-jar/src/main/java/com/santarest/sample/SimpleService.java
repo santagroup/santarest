@@ -36,7 +36,7 @@ public class SimpleService {
                 .subscribe(new ActionStateSubscriber<UserReposAction>()
                         .onFail(throwable -> System.out.println("repos request throwable " + throwable))
                         .onSuccess(action -> System.out.println("repos request finished " + action))
-                        .onError(action -> System.out.println("repos request http throwable " + action)));
+                        .onServerError(action -> System.out.println("repos request http throwable " + action)));
 
     }
 }
