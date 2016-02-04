@@ -7,7 +7,7 @@ import com.santarest.annotations.Status;
  * that action helper will be generated to fill the
  * annotated variables of super class too.
  */
-public class BaseExampleAction {
+public class BaseAction {
 
     @Status
     boolean success;

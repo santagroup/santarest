@@ -2,10 +2,9 @@ apply plugin: 'java'
 
 
 dependencies {
-    compile 'com.squareup:otto:+'
     compile project(":santarest")
     compile project(':santarest-compiler')
-    compile'io.reactivex:rxjava:1.0.15'
+    compile'io.reactivex:rxjava:1.1.0'
 
 }
 
@@ -15,7 +14,7 @@ task jarWithDependencies(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'SantaRest jar example',
                 'Implementation-Version': version,
-                'Main-Class': 'com.santarest.sample.ExampleExecutableJar'
+                'Main-Class': 'com.santarest.sample.SimpleService'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -24,7 +23,7 @@ task jarWithDependencies(type: Jar) {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.santarest.sample.ExampleExecutableJar',
+        attributes 'Main-Class': 'com.santarest.sample.SimpleService',
                 'Class-Path': configurations.runtime.files.collect {"$it.name"}.join(' ')
     }
 }
