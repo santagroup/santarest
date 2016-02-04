@@ -6,6 +6,7 @@ import com.santarest.SantaRestExecutor;
 import com.santarest.sample.model.User;
 
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by dirong on 2/4/16.
@@ -35,7 +36,6 @@ public class SimpleService {
                 .flatMap(user -> userReposExecutor.createObservable(new UserReposAction(user.getLogin())))
                 .subscribe(new ActionStateSubscriber<UserReposAction>()
                         .onFail(throwable -> System.out.println("repos request error " + throwable))
-                        .onFinish(action -> System.out.println("repos request finished " + action)));
-
+                        .onSuccess(action -> System.out.println("repos request finished " + action)));
     }
 }

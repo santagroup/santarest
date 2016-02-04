@@ -61,10 +61,10 @@ public class SantaRest {
      * @param action any object annotated with
      * @see com.santarest.annotations.RestAction
      */
-    private <A> A runAction(A action) throws IOException {
+    private <A> A runAction(A action) throws Exception {
         final ActionHelper<A> helper = getActionHelper(action.getClass());
         if (helper == null) {
-            throw new SantaRestException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
+            throw new IllegalArgumentException("Action object should be annotated by " + RestAction.class.getName() + " or check dependence of santarest-compiler");
         }
         RequestBuilder builder = new RequestBuilder(serverUrl, converter);
         builder = helper.fillRequest(builder, action);
@@ -81,6 +81,9 @@ public class SantaRest {
             listener.onResponseReceived(action, request, response);
         }
         logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
+        if(!response.isSuccessful()){
+            throw new SantaServerError(action, request, response);
+        }
         return action;
     }
 
@@ -103,7 +106,7 @@ public class SantaRest {
         }).scheduler(scheduler);
     }
 
-    public <A> SantaRestExecutor<A> createExecutor(Class<A> actionClass){
+    public <A> SantaRestExecutor<A> createExecutor(Class<A> actionClass) {
         return createExecutor(actionClass, null);
     }
 
@@ -124,9 +127,12 @@ public class SantaRest {
                 }
             } catch (final Exception e) {
                 Exceptions.throwIfFatal(e);
-                if (e instanceof SantaRestException) {
-                    throw (SantaRestException) e;
+                if (e instanceof IllegalArgumentException) {
+                    throw (IllegalArgumentException) e;
                 }
+//                if (e instanceof IOException) { //TODO: do we want to throw it?
+//                    throw (IOException) e;
+//                }
                 if (!subscriber.isUnsubscribed()) {
                     subscriber.onError(e);
                 }
