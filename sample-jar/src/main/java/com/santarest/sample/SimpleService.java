@@ -26,7 +26,7 @@ public class SimpleService {
                 .filter(BaseAction::isSuccess)
                 .subscribe(usersAction -> {
                     System.out.println("received " + usersAction);
-                });
+                }, System.out::println);
 
 
         usersExecutor.createObservable(new UsersAction())
@@ -37,6 +37,7 @@ public class SimpleService {
                         .onFail(throwable -> System.out.println("repos request throwable " + throwable))
                         .onSuccess(action -> System.out.println("repos request finished " + action))
                         .onServerError(action -> System.out.println("repos request http throwable " + action)));
+
 
     }
 }
