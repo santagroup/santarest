@@ -26,7 +26,7 @@ public class SimpleService {
                 .filter(BaseAction::isSuccess)
                 .subscribe(usersAction -> {
                     System.out.println("received " + usersAction);
-                });
+                }, System.out::println);
 
 
         usersExecutor.createObservable(new UsersAction())
@@ -36,6 +36,7 @@ public class SimpleService {
                 .subscribe(new ActionStateSubscriber<UserReposAction>()
                         .onFail(throwable -> System.out.println("repos request error " + throwable))
                         .onFinish(action -> System.out.println("repos request finished " + action)));
+
 
     }
 }
