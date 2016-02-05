@@ -44,8 +44,6 @@ public class RestActionValidators implements Validator<RestActionClass> {
         validators.add(new AnnotationTypesValidator(Part.class, File.class, byte[].class, String.class, HttpBody.class,
                 ByteArrayBody.class, MultipartRequestBody.class, FormUrlEncodedRequestBody.class, FileBody.class));
         validators.add(new AnnotationQuantityValidator(Body.class, 1));
-        validators.add(new AnnotationQuantityValidator(Field.class, 1));
-
     }
 
     @Override
