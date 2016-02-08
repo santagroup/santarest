@@ -18,6 +18,7 @@ public abstract class WSClient {
 
     public WSClient(int port, Scheme scheme) {
         this.port = port;
+        this.scheme = scheme;
     }
 
     public WSClient() {
@@ -32,7 +33,7 @@ public abstract class WSClient {
         return port;
     }
 
-    public Scheme getScheme() {
+    public Scheme scheme() {
         return scheme;
     }
 }
