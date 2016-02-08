@@ -23,16 +23,16 @@ class HttpActionAdapter implements ActionAdapter {
 
     private final HttpClient client;
     private final Converter converter;
-    private final String serverUrl;
+    private final String baseUrl;
 
-    static HttpActionAdapter create(HttpClient client, Converter converter, String serverUrl) {
-        return new HttpActionAdapter(client, converter, serverUrl);
+    static HttpActionAdapter create(HttpClient client, Converter converter, String baseUrl) {
+        return new HttpActionAdapter(client, converter, baseUrl);
     }
 
-    private HttpActionAdapter(HttpClient client, Converter converter, String serverUrl) {
+    private HttpActionAdapter(HttpClient client, Converter converter, String baseUrl) {
         this.client = client;
         this.converter = converter;
-        this.serverUrl = serverUrl;
+        this.baseUrl = baseUrl;
         loadActionHelperFactory();
     }
 
@@ -41,21 +41,17 @@ class HttpActionAdapter implements ActionAdapter {
         if (helper == null) {
             throw new SantaRestException("Something was happened with code generator. Check dependence of santarest-compiler");
         }
-        RequestBuilder builder = new RequestBuilder(serverUrl, converter);
+        RequestBuilder builder = new RequestBuilder(baseUrl, converter);
         builder = helper.fillRequest(builder, action);
 //        for (RequestInterceptor requestInterceptor : requestInterceptors) {
 //            requestInterceptor.intercept(builder);
 //        }
         Request request = builder.build();
-//        String nameActionForlog = action.getClass().getSimpleName();
-//        logger.log("Start executing request %s", nameActionForlog);
         Response response = client.execute(request);
-//        logger.log("Received response of %s", nameActionForlog);
         action = helper.onResponse(action, response, converter);
 //        for (ResponseListener listener : responseInterceptors) {
 //            listener.onResponseReceived(action, request, response);
 //        }
-//        logger.log("Filled response of %s using helper %s", nameActionForlog, helper.getClass().getSimpleName());
         if (!response.isSuccessful()) { //throw exception to change action state
             throw new SantaHTTPException();
         }
@@ -79,7 +75,7 @@ class HttpActionAdapter implements ActionAdapter {
                     = (Class<? extends SantaRest.ActionHelperFactory>) Class.forName(HELPERS_FACTORY_CLASS_NAME);
             actionHelperFactory = clazz.newInstance();
         } catch (Exception e) {
-            //do nothing. actionHelperFactory will be checked on run action
+            //do nothing. actionHelperFactory will be checked on send()
         }
     }
 

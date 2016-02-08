@@ -6,6 +6,7 @@ import com.santarest.http.Request;
 import com.santarest.http.Response;
 import com.santarest.http.client.HttpClient;
 import com.santarest.utils.Logger;
+import com.santarest.ws.client.WSClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class SantaRest {
         this.responseInterceptors = builder.responseInterceptors;
         this.converter = builder.converter;
         this.logger = Defaults.getLogger();
-        this.actionAdapterFactory = new ActionAdapterFactory(builder.baseUrl, builder.converter, builder.httpClient);
+        this.actionAdapterFactory = new ActionAdapterFactory(builder.baseUrl, builder.converter, builder.httpClient, builder.wsClient);
     }
 
     private <A> void sendAction(A action, Action1<A> callback) throws IOException {
@@ -141,6 +142,7 @@ public class SantaRest {
     public static class Builder {
         private String baseUrl;
         private HttpClient httpClient;
+        private WSClient wsClient;
         private List<RequestInterceptor> requestInterceptors = new ArrayList<RequestInterceptor>();
         private List<ResponseListener> responseInterceptors = new ArrayList<ResponseListener>();
         private Converter converter;
@@ -156,14 +158,19 @@ public class SantaRest {
             return this;
         }
 
-        /**
-         * The HTTP httpClient used for requests.
-         */
         public Builder setHttpClient(HttpClient httpClient) {
             if (httpClient == null) {
                 throw new IllegalArgumentException("Client provider may not be null.");
             }
             this.httpClient = httpClient;
+            return this;
+        }
+
+        public Builder setWSClient(WSClient wsClient) {
+            if (httpClient == null) {
+                throw new IllegalArgumentException("Client provider may not be null.");
+            }
+            this.wsClient = wsClient;
             return this;
         }
 
@@ -214,6 +221,7 @@ public class SantaRest {
             if (httpClient == null) {
                 httpClient = Defaults.getClient();
             }
+            //TODO: add wsClient filling
         }
     }
 }
