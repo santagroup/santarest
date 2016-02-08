@@ -16,7 +16,7 @@ public class SimpleService {
 
     public static void main(String... args) {
         SantaRest gitHubAPI = new SantaRest.Builder()
-                .setServerUrl(API_URL)
+                .setBaseUrl(API_URL)
                 .build();
 
         SantaRestExecutor<UsersAction> usersExecutor = gitHubAPI.createExecutor(UsersAction.class);

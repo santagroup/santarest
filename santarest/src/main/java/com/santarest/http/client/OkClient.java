@@ -1,4 +1,4 @@
-package com.santarest.client;
+package com.santarest.http.client;
 
 import com.santarest.http.Request;
 import com.squareup.okhttp.OkHttpClient;

@@ -34,7 +34,7 @@ public class App extends Application {
     public SantaRest getGitHubAPI() {
         if (gitHubAPI == null) {
             gitHubAPI = new SantaRest.Builder()
-                    .setServerUrl(API_URL)
+                    .setBaseUrl(API_URL)
                     .addRequestInterceptor(request -> request.addHeader("test", "test"))
                     .build();
         }

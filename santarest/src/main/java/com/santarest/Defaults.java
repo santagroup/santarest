@@ -7,10 +7,10 @@ import android.os.Process;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.santarest.client.AndroidApacheClient;
-import com.santarest.client.HttpClient;
-import com.santarest.client.OkClient;
-import com.santarest.client.UrlConnectionClient;
+import com.santarest.http.client.AndroidApacheClient;
+import com.santarest.http.client.HttpClient;
+import com.santarest.http.client.OkClient;
+import com.santarest.http.client.UrlConnectionClient;
 import com.santarest.converter.Converter;
 import com.santarest.converter.GsonConverter;
 import com.santarest.utils.Logger;

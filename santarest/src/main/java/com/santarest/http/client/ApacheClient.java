@@ -1,4 +1,4 @@
-package com.santarest.client;
+package com.santarest.http.client;
 
 import com.santarest.http.ByteArrayBody;
 import com.santarest.http.Header;
@@ -32,9 +32,9 @@ import java.util.List;
 
 
 /**
- * A {@link com.santarest.client.HttpClient} which uses an implementation of Apache's {@link HttpClient}.
+ * A {@link com.santarest.http.client.HttpClient} which uses an implementation of Apache's {@link HttpClient}.
  */
-public class ApacheClient implements com.santarest.client.HttpClient {
+public class ApacheClient implements com.santarest.http.client.HttpClient {
     private static HttpClient createDefaultClient() {
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(params, CONNECT_TIMEOUT_MILLIS);

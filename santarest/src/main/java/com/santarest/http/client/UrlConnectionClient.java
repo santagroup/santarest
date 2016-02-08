@@ -1,4 +1,4 @@
-package com.santarest.client;
+package com.santarest.http.client;
 
 import com.santarest.http.ByteArrayBody;
 import com.santarest.http.Header;
