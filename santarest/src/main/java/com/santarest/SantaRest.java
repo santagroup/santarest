@@ -152,7 +152,10 @@ public class SantaRest {
          */
         public Builder setBaseUrl(String baseUrl) {
             if (baseUrl == null || baseUrl.trim().length() == 0) {
-                throw new IllegalArgumentException("Endpoint may not be blank.");
+                throw new IllegalArgumentException("baseUrl may not be blank.");
+            }
+            if(!baseUrl.contains("://")){
+                throw new IllegalArgumentException("baseUrl may not be without scheme.");
             }
             this.baseUrl = baseUrl;
             return this;

@@ -13,7 +13,4 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target(TYPE)
 @Retention(RUNTIME)
-public @interface WSAction {
-
-    String value() default "";
-}
+public @interface WSAction {}

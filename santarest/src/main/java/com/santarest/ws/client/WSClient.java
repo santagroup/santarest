@@ -1,7 +1,5 @@
 package com.santarest.ws.client;
 
-import com.santarest.SantaRestException;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,7 +29,7 @@ public abstract class WSClient {
         this(DEFAULT_PORT, DEFAULT_SCHEME);
     }
 
-    public abstract void connect();
+    public abstract void connect(String url);
 
     public abstract void disconnect();
 
@@ -39,31 +37,31 @@ public abstract class WSClient {
 
     public abstract boolean isConnected();
 
-    final protected void onConnect(){
+    final protected void onConnect() {
         for (Handler handler : handlers) {
             handler.onConnect();
         }
     }
 
-    final protected void onDisconnect(int code, String reason){
+    final protected void onDisconnect(int code, String reason) {
         for (Handler handler : handlers) {
             handler.onDisconnect(code, reason);
         }
     }
 
-    final protected void onMessage(String message){
+    final protected void onMessage(String message) {
         for (Handler handler : handlers) {
             handler.onMessage(message);
         }
     }
 
-    final protected void onMessage(byte[] data){
+    final protected void onMessage(byte[] data) {
         for (Handler handler : handlers) {
             handler.onMessage(data);
         }
     }
 
-    final protected void onError(Exception error){
+    final protected void onError(Exception error) {
         for (Handler handler : handlers) {
             handler.onError(error);
         }
@@ -77,19 +75,19 @@ public abstract class WSClient {
         return scheme;
     }
 
-    final public void addHandler(Handler handler){
-        if(handler == null)
+    final public void addHandler(Handler handler) {
+        if (handler == null)
             throw new IllegalArgumentException("WSClient.Handler == null");
         handlers.add(handler);
     }
 
-    final public void removeHandler(Handler handler){
-        if(handler == null)
+    final public void removeHandler(Handler handler) {
+        if (handler == null)
             throw new IllegalArgumentException("WSClient.Handler == null");
         handlers.remove(handler);
     }
 
-    public interface Handler{
+    public interface Handler {
 
         void onConnect();
 
